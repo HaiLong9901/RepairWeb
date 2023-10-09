@@ -14,6 +14,7 @@ model User {
   userId      String   @id
   accountName String   @unique
   firstName   String
+  lastName    String
   dob         String
   phone       String
   email       String
