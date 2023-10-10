@@ -16,8 +16,8 @@ model User {
   firstName   String
   lastName    String
   dob         String
-  phone       String
-  email       String
+  phone       String   @unique
+  email       String   @unique
   password    String
   imageUrl    String?
   role        Int
