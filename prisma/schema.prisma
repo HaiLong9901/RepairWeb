@@ -25,4 +25,17 @@ model User {
   status      Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  otps Otp[]
+}
+
+model Otp {
+  otpId      String   @id
+  code       String
+  expireAt   DateTime
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+  user       User     @relation(fields: [userId], references: [userId])
 }

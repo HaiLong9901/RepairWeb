@@ -1,7 +1,6 @@
 import {
   IsNotEmpty,
   IsString,
-  IsPhoneNumber,
   IsEmail,
   IsBoolean,
   IsStrongPassword,
@@ -24,7 +23,7 @@ export class AuthSignUpRequestDto {
   @ApiProperty()
   dob: string;
 
-  @IsPhoneNumber()
+  @IsString()
   @IsNotEmpty()
   @ApiProperty()
   phone: string;

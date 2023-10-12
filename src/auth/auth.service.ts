@@ -26,25 +26,49 @@ export class AuthService {
       const accName =
         generateVNeseAccName(dto.lastName + ' ' + dto.firstName) +
         userId.slice(7, userId.length);
-      const user = await this.prisma.user.create({
-        data: {
-          email: dto.email,
-          password: hashPassword,
+      const prevUser = await this.prisma.user.findFirst({
+        where: {
           phone: dto.phone,
-          dob: dto.dob,
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          role: Role.ROLE_USER,
           status: UserStatus.INACTIVE,
-          userId: userId,
-          accountName: accName,
-          gender: dto.gender,
         },
       });
+      if (prevUser) {
+        const user = await this.prisma.user.update({
+          where: {
+            userId: prevUser.userId,
+          },
+          data: {
+            dob: dto.dob,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            gender: dto.gender,
+            accountName: accName,
+          },
+        });
 
-      delete user.password;
+        delete user.password;
+        return user;
+      } else {
+        const user = await this.prisma.user.create({
+          data: {
+            email: dto.email,
+            password: hashPassword,
+            phone: dto.phone,
+            dob: dto.dob,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            role: Role.ROLE_USER,
+            status: UserStatus.INACTIVE,
+            userId: userId,
+            accountName: accName,
+            gender: dto.gender,
+          },
+        });
 
-      return user;
+        delete user.password;
+
+        return user;
+      }
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         throw new ForbiddenException('Tài khoản đã tồn tại');

@@ -24,4 +24,10 @@ export class AuthController {
   signIn(@Body() dto: AuthSignInRequestDto) {
     return this.authService.signIn(dto);
   }
+
+  @Post('updateRefreshToken')
+  @ApiResponse({ type: AuthSignInResponseDto })
+  updateRefreshToken(@Body() dto: AuthSignInRequestDto) {
+    return this.authService.signToken(dto.phone, dto.password);
+  }
 }
