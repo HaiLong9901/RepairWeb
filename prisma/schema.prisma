@@ -11,26 +11,33 @@ datasource db {
 }
 
 model User {
-  userId      String   @id
-  accountName String   @unique
-  firstName   String
-  lastName    String
-  dob         String
-  phone       String   @unique
-  email       String   @unique
-  password    String
-  imageUrl    String?
-  role        Int
-  gender      Boolean  @default(true)
-  status      Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  userId         String           @id
+  accountName    String           @unique
+  firstName      String
+  lastName       String
+  dob            String
+  phone          String           @unique
+  email          String           @unique
+  password       String
+  imageUrl       String?
+  role           Int
+  gender         Boolean          @default(true)
+  status         Int
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  cart           Cart?
+  otps           Otp[]
+  address        UserAddress[]
+  review         Review[]
+  repairmanSkill RepairmanSkill[]
+  notifications  Notification[]
 
-  otps Otp[]
+  orders       Order[] @relation("user")
+  repairOrders Order[] @relation("repairman")
 }
 
 model Otp {
-  otpId      String   @id
+  otpId      BigInt   @id
   code       String
   expireAt   DateTime
   isVerified Boolean  @default(false)
@@ -38,4 +45,180 @@ model Otp {
   updatedAt  DateTime @updatedAt
   userId     String
   user       User     @relation(fields: [userId], references: [userId])
+}
+
+model UserAddress {
+  addressId     Int     @id @default(autoincrement())
+  address       String
+  coordinate    String
+  isMainAddress Boolean
+  userId        String
+  user          User    @relation(fields: [userId], references: [userId])
+}
+
+model Review {
+  reviewId  BigInt   @id @default(autoincrement())
+  rate      Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+
+  user User @relation(fields: [userId], references: [userId])
+}
+
+model Skill {
+  skillId   Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  repairmanSkill RepairmanSkill[]
+  hasServices    Service[]
+}
+
+model RepairmanSkill {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  skillId   Int
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [userId])
+  skill Skill @relation(fields: [skillId], references: [skillId])
+}
+
+model Cart {
+  cartId    Int      @id @default(autoincrement())
+  updatedAt DateTime @updatedAt
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [userId])
+
+  cartItems CartItem[]
+}
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  isChoosen Boolean @default(false)
+  cartId    Int
+  serviceId Int
+
+  cart    Cart    @relation(fields: [cartId], references: [cartId])
+  service Service @relation(fields: [serviceId], references: [serviceId])
+}
+
+model Service {
+  serviceId Int      @id @default(autoincrement())
+  name      String
+  type      Int
+  price     BigInt?
+  rate      Int?
+  desc      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  skillId   Int
+
+  skill        Skill                 @relation(fields: [skillId], references: [skillId])
+  cartItems    CartItem[]
+  malfunctions MalfunctionCategory[]
+  orderDetails OrderDetail[]
+}
+
+model MalfunctionCategory {
+  malfuncId Int    @id @default(autoincrement())
+  name      String
+  price     BigInt
+  serviceId Int
+
+  service   Service     @relation(fields: [serviceId], references: [serviceId])
+  diagnosis Diagnosis[]
+}
+
+model Order {
+  orderId     BigInt   @id @default(autoincrement())
+  code        String
+  status      Int
+  total       BigInt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  expectDate  String
+  userId      String
+  repairmanId String
+
+  user      User @relation("user", fields: [userId], references: [userId])
+  repairman User @relation("repairman", fields: [repairmanId], references: [userId])
+
+  orderDetails OrderDetail[]
+  transactions Transaction[]
+  components   Component[]
+}
+
+model OrderDetail {
+  orderDetailId BigInt @id @default(autoincrement())
+  orderId       BigInt
+  serviceId     Int
+  desc          String
+
+  order     Order        @relation(fields: [orderId], references: [orderId])
+  service   Service      @relation(fields: [serviceId], references: [serviceId])
+  diagnosis Diagnosis[]
+  media     OrderMedia[]
+}
+
+model Diagnosis {
+  diagnosisId   BigInt  @id @default(autoincrement())
+  orderDetailId BigInt
+  malfuncId     Int
+  isAccepted    Boolean @default(true)
+
+  orderDetail OrderDetail         @relation(fields: [orderDetailId], references: [orderDetailId])
+  malfunction MalfunctionCategory @relation(fields: [malfuncId], references: [malfuncId])
+}
+
+model OrderMedia {
+  orderMediaId  BigInt  @id @default(autoincrement())
+  orderDetailId BigInt
+  mediaType     Int
+  url           String
+  alt           String?
+
+  orderDetail OrderDetail @relation(fields: [orderDetailId], references: [orderDetailId])
+}
+
+model Transaction {
+  transactionId BigInt   @id @default(autoincrement())
+  orderId       BigInt
+  type          Int
+  creditCode    String
+  createdAt     DateTime @default(now())
+  amount        BigInt
+
+  order Order @relation(fields: [orderId], references: [orderId])
+}
+
+model Notification {
+  notificationId BigInt  @id @default(autoincrement())
+  userId         String
+  isSeen         Boolean @default(false)
+  content        String
+
+  user User @relation(fields: [userId], references: [userId])
+}
+
+model Component {
+  componentId  BigInt @id @default(autoincrement())
+  name         String
+  quantity     Int
+  unit         String
+  pricePerUnit Int
+  brand        String
+  model        String
+  supplier     String
+  orderId      BigInt
+
+  order Order @relation(fields: [orderId], references: [orderId])
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "../ERD.pdf"
 }
