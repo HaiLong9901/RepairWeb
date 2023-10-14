@@ -37,7 +37,7 @@ model User {
 }
 
 model Otp {
-  otpId      BigInt   @id
+  otpId      BigInt   @id @default(autoincrement())
   code       String
   expireAt   DateTime
   isVerified Boolean  @default(false)
@@ -216,9 +216,4 @@ model Component {
   orderId      BigInt
 
   order Order @relation(fields: [orderId], references: [orderId])
-}
-
-generator erd {
-  provider = "prisma-erd-generator"
-  output   = "../ERD.pdf"
 }

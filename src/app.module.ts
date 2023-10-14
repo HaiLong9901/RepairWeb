@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { OtpModule } from './otp/otp.module';
+import { UserAddressModule } from './user-address/user-address.module';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { OtpModule } from './otp/otp.module';
     AuthModule,
     PrismaModule,
     OtpModule,
+    UserAddressModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService],
