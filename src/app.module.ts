@@ -8,6 +8,9 @@ import { ConfigModule } from '@nestjs/config';
 import { OtpModule } from './otp/otp.module';
 import { AddressModule } from './address/address.module';
 import { SkillModule } from './skill/skill.module';
+import { SeriveModule } from './serive/serive.module';
+import { ServiceService } from './service/service.service';
+import { ServiceController } from './service/service.controller';
 
 @Module({
   imports: [
@@ -18,8 +21,9 @@ import { SkillModule } from './skill/skill.module';
     OtpModule,
     AddressModule,
     SkillModule,
+    SeriveModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, ServiceController],
+  providers: [AppService, ServiceService],
 })
 export class AppModule {}
