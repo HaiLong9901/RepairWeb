@@ -12,9 +12,9 @@ export class AddressRequestDto {
 
   @ApiProperty()
   @IsBoolean()
-  isMainAddress;
+  isMainAddress: boolean;
 
   @ApiProperty()
   @IsString()
-  userId;
+  userId: string;
 }
