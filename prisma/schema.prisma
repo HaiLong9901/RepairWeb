@@ -116,6 +116,7 @@ model Service {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   skillId   Int
+  isActive  Boolean  @default(true)
 
   skill        Skill                 @relation(fields: [skillId], references: [skillId])
   cartItems    CartItem[]
