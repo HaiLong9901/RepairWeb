@@ -11,10 +11,8 @@ export class CreateServiceRequestDto {
   type: number;
 
   @ApiProperty()
+  @IsPositive()
   price: number;
-
-  @ApiProperty()
-  rate: number;
 
   @ApiProperty()
   @IsString()

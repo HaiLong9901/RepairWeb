@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Post, Body } from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ServiceResponseDto } from './dto/response.dto';
@@ -26,16 +26,37 @@ export class ServiceController {
 
   @Post('createService')
   @ApiResponse({ type: ServiceResponseDto })
-  async createService(dto: CreateServiceRequestDto) {
+  async createService(@Body() dto: CreateServiceRequestDto) {
     return this.serviceService.createService(dto);
   }
 
   @Patch('updateService')
   @ApiResponse({ type: ServiceResponseDto })
-  async updateService(dto: UpdateServiceRequestDto) {
+  async updateService(@Body() dto: UpdateServiceRequestDto) {
     return this.serviceService.updateService(dto);
   }
 
-  //   @Patch('delete/:id')
-  //   @ApiResponse({})
+  @Patch('delete/:id')
+  @ApiResponse({ status: 200 })
+  async deleteService(@Param('id') sericeId: string) {
+    return this.serviceService.deleteService(parseInt(sericeId));
+  }
+
+  @Get('getServiceByName/:keyword')
+  @ApiResponse({ type: ServiceResponseDto, isArray: true })
+  async getServiceByName(@Param('keyword') keyword: string) {
+    return this.serviceService.getServiceByName(keyword);
+  }
+
+  @Get('getServiceByType/:type')
+  @ApiResponse({ type: ServiceResponseDto, isArray: true })
+  async getAllServiceByType(@Param('type') type: number) {
+    return this.serviceService.getServiceByType(type);
+  }
+
+  @Get('getServiceBySkill/:skillId')
+  @ApiResponse({ type: ServiceResponseDto, isArray: true })
+  async getAllServiceBySkill(@Param('skillId') skillId: number) {
+    return this.serviceService.getServiceBySkill(skillId);
+  }
 }

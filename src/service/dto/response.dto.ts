@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Skill } from '@prisma/client';
 
 export class ServiceResponseDto {
   @ApiProperty()
@@ -20,7 +21,7 @@ export class ServiceResponseDto {
   desc: string;
 
   @ApiProperty()
-  skill: string;
+  skill: Skill;
 
   @ApiProperty()
   skillId: number;
