@@ -24,9 +24,7 @@ export class ServiceService {
           ...dto,
         },
       });
-      const result: any = { ...service };
-      result.price = service.price.toString();
-      return result;
+      return formatBigInt(service);
     } catch (error) {
       console.log(error);
       throw error;
@@ -54,7 +52,7 @@ export class ServiceService {
         },
       });
 
-      return service;
+      return formatBigInt(service);
     } catch (error) {
       console.log(error);
       throw error;
@@ -72,7 +70,6 @@ export class ServiceService {
         },
       });
 
-      // return services;
       return services.map((value) => {
         return formatBigInt(value);
       });
@@ -95,7 +92,7 @@ export class ServiceService {
         throw new NotFoundException('Service is not found');
       }
 
-      return service;
+      return formatBigInt(service);
     } catch (error) {
       console.log(error);
       throw error;
@@ -139,13 +136,18 @@ export class ServiceService {
           ],
           isActive: true,
         },
+        include: {
+          skill: true,
+        },
       });
 
       if (!services || services.length === 0) {
         throw new NotFoundException('No service found');
       }
 
-      return services;
+      return services.map((value) => {
+        return formatBigInt(value);
+      });
     } catch (error) {
       console.log(error);
       throw error;
@@ -159,13 +161,18 @@ export class ServiceService {
           type: type,
           isActive: true,
         },
+        include: {
+          skill: true,
+        },
       });
 
       if (!services || services.length === 0) {
         throw new NotFoundException('No service found');
       }
 
-      return services;
+      return services.map((value) => {
+        return formatBigInt(value);
+      });
     } catch (error) {
       console.log(error);
       throw error;
@@ -178,6 +185,9 @@ export class ServiceService {
         where: {
           skillId: skillId,
           isActive: true,
+        },
+        include: {
+          skill: true,
         },
       });
 
