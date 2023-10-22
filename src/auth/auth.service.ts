@@ -9,6 +9,7 @@ import { UserStatus } from 'src/enum/user-status';
 import { generateVNeseAccName } from 'src/utils/formatString';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { AuthSignInRequestDto } from './dto/auth-signin.dto';
+import { formatBigInt } from 'src/utils/formatResponse';
 
 @Injectable()
 export class AuthService {
@@ -120,7 +121,7 @@ export class AuthService {
     const secret = this.config.get('JWT_SECRET');
 
     const accessToken = await this.jwt.signAsync(payload, {
-      expiresIn: '1m',
+      expiresIn: '1d',
       secret: secret,
     });
     const refreshToken = await this.jwt.signAsync(payload, {
@@ -132,5 +133,20 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async getProfile(userId: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          userId,
+        },
+      });
+
+      return formatBigInt(user);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }
