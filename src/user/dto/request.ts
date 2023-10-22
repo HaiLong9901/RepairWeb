@@ -11,11 +11,11 @@ import {
 export class CreateUserReqestDto {
   @ApiProperty()
   @IsString()
-  userId: string;
+  userId?: string;
 
   @ApiProperty()
   @IsString()
-  accountName: string;
+  accountName?: string;
 
   @ApiProperty()
   @IsString()
@@ -47,6 +47,78 @@ export class CreateUserReqestDto {
   @ApiProperty()
   @IsPositive()
   role: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  gender: boolean;
+}
+
+export class UpdateUserRequestDto {
+  @ApiProperty()
+  @IsString()
+  userId: string;
+
+  @ApiProperty()
+  @IsString()
+  accountName: string;
+
+  @ApiProperty()
+  @IsString()
+  firstName: string;
+
+  @ApiProperty()
+  lastName: string;
+
+  @ApiProperty()
+  @IsDate()
+  dob: string;
+
+  @ApiProperty()
+  @IsString()
+  phone: string;
+
+  @ApiProperty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  imageUrl?: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  gender: boolean;
+}
+
+export class ChangePasswordDto {
+  @ApiProperty()
+  @IsStrongPassword()
+  oldPassword: string;
+
+  @ApiProperty()
+  @IsStrongPassword()
+  newPassword: string;
+}
+
+export class SelfUpdateUserDto {
+  @ApiProperty()
+  @IsString()
+  accountName: string;
+
+  @ApiProperty()
+  @IsString()
+  firstName: string;
+
+  @ApiProperty()
+  lastName: string;
+
+  @ApiProperty()
+  @IsDate()
+  dob: string;
+
+  @ApiProperty()
+  @IsString()
+  imageUrl?: string;
 
   @ApiProperty()
   @IsBoolean()

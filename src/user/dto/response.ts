@@ -44,3 +44,8 @@ export class UserResponseDto {
   @ApiProperty()
   skills?: Skill[];
 }
+
+export class SwitchUserStatusResponseDto {
+  @ApiProperty()
+  message: string;
+}

@@ -81,17 +81,20 @@ export class AuthService {
     const user = await this.prisma.user.findFirst({
       where: {
         phone: dto.phone,
+        NOT: {
+          status: UserStatus.INACTIVE,
+        },
       },
     });
 
     if (!user) {
-      throw new ForbiddenException('Tài khoản không tông tại');
+      throw new ForbiddenException('Account does not exist');
     }
 
     const passwordMatch = await argon.verify(user.password, dto.password);
 
     if (!passwordMatch) {
-      throw new ForbiddenException('Sai mật khẩu');
+      throw new ForbiddenException('Password is wrong');
     }
 
     return this.signToken(user.userId, user.phone);

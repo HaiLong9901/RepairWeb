@@ -2,17 +2,32 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserStatus } from 'src/enum/user-status';
 import { formatBigInt } from 'src/utils/formatResponse';
 import { Role } from 'src/enum/role';
-import { CreateUserReqestDto } from './dto/request';
+import {
+  ChangePasswordDto,
+  CreateUserReqestDto,
+  SelfUpdateUserDto,
+  UpdateUserRequestDto,
+} from './dto/request';
 import { generateUserId } from 'src/utils/generateUserId';
 import { generateVNeseAccName } from 'src/utils/formatString';
+import * as argon from 'argon2';
+import { admin, customer, repairman } from './dto/mockdata';
 @Injectable()
-export class UserService {
+export class UserService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
+
+  onModuleInit() {
+    this.prisma.cleanDb();
+    this.createUser(customer);
+    this.createUser(admin);
+    this.createUser(repairman);
+  }
 
   async getUserById(userId: string) {
     if (!userId || userId.length === 0) {
@@ -117,6 +132,7 @@ export class UserService {
         );
       }
 
+      const hashPassword = await argon.hash(dto.password);
       const userId = generateUserId(phone, role);
       const account =
         generateVNeseAccName(dto.lastName + ' ' + dto.firstName) +
@@ -127,6 +143,7 @@ export class UserService {
           status: UserStatus.ACTIVE,
           accountName: account,
           userId,
+          password: hashPassword,
         },
         include: {
           repairmanSkill: true,
@@ -134,5 +151,176 @@ export class UserService {
       });
       return formatBigInt(user);
     } catch (error) {}
+  }
+
+  async updateUser(dto: UpdateUserRequestDto) {
+    try {
+      const existedUser = await this.prisma.user.findUnique({
+        where: {
+          userId: dto.userId,
+        },
+      });
+
+      if (!existedUser) {
+        throw new NotFoundException('User is not found');
+      }
+
+      if (existedUser.email !== dto.email) {
+        const existedEmail = await this.prisma.user.findUnique({
+          where: {
+            email: dto.email,
+          },
+        });
+
+        if (existedEmail) {
+          throw new ForbiddenException('Email has already used');
+        }
+      }
+
+      if (existedUser.phone !== dto.phone) {
+        const existedPhone = await this.prisma.user.findUnique({
+          where: {
+            phone: dto.phone,
+          },
+        });
+
+        if (existedPhone) {
+          throw new ForbiddenException('Phone number has been used');
+        }
+      }
+      const account =
+        generateVNeseAccName(dto.lastName + ' ' + dto.firstName) +
+        dto.userId.slice(7, dto.userId.length);
+      const updatedUser = await this.prisma.user.update({
+        where: {
+          userId: dto.userId,
+        },
+        data: {
+          accountName: account,
+          lastName: dto.lastName,
+          firstName: dto.firstName,
+          imageUrl: dto.imageUrl,
+          gender: dto.gender,
+          dob: dto.dob,
+          phone: dto.phone,
+          email: dto.email,
+        },
+      });
+
+      return formatBigInt(updatedUser);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async switchUserActiveStatus(userId: string, status: number) {
+    if (!userId || userId.length === 0) {
+      throw new ForbiddenException('Missing userId');
+    }
+
+    if (status !== UserStatus.INACTIVE && status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException("User's status must be ACTIVE or INACTIVE");
+    }
+
+    try {
+      const existedUser = await this.prisma.user.findUnique({
+        where: {
+          userId,
+        },
+      });
+
+      if (!existedUser) {
+        throw new NotFoundException('User is not found');
+      }
+
+      await this.prisma.user.update({
+        where: {
+          userId,
+        },
+        data: {
+          status,
+        },
+      });
+
+      return { message: "switch user's account status successfully" };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async updateRepairmanStatus(userId: string, status: number) {
+    if (status !== UserStatus.INACTIVE) {
+      throw new ForbiddenException(
+        'You are not permitted to inactive your account',
+      );
+    }
+
+    try {
+      await this.prisma.user.update({
+        where: {
+          userId,
+        },
+        data: {
+          status,
+        },
+      });
+
+      return { message: 'Update status successfully' };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          userId,
+        },
+      });
+      const isMatch = await argon.verify(dto.oldPassword, user.password);
+      if (!isMatch) {
+        throw new ForbiddenException('Password is wrong');
+      }
+
+      const hashPassword = await argon.hash(dto.newPassword);
+      await this.prisma.user.update({
+        where: {
+          userId,
+        },
+        data: {
+          password: hashPassword,
+        },
+      });
+
+      return { message: 'Change password successfully' };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async selfUpdateProfile(userId: string, dto: SelfUpdateUserDto) {
+    try {
+      const account =
+        generateVNeseAccName(dto.lastName + ' ' + dto.firstName) +
+        userId.slice(7, userId.length);
+      const updatedUser = await this.prisma.user.update({
+        where: {
+          userId,
+        },
+        data: {
+          ...dto,
+          accountName: account,
+        },
+      });
+      return formatBigInt(updatedUser);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }
