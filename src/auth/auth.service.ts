@@ -59,7 +59,7 @@ export class AuthService {
             firstName: dto.firstName,
             lastName: dto.lastName,
             role: Role.ROLE_USER,
-            status: UserStatus.INACTIVE,
+            status: UserStatus.ACTIVE,
             userId: userId,
             accountName: accName,
             gender: dto.gender,
