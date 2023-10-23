@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Patch, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ServiceResponseDto } from './dto/response.dto';
@@ -6,6 +14,8 @@ import {
   CreateServiceRequestDto,
   UpdateServiceRequestDto,
 } from './dto/request.dto';
+import { JwtGuard } from 'src/auth/guard/jwt.guard';
+import { AdminGuard } from 'src/auth/guard/admin.guard';
 
 @Controller('service')
 @ApiTags('Service')
@@ -25,18 +35,21 @@ export class ServiceController {
   }
 
   @Post('createService')
+  @UseGuards(JwtGuard, AdminGuard)
   @ApiResponse({ type: ServiceResponseDto })
   async createService(@Body() dto: CreateServiceRequestDto) {
     return this.serviceService.createService(dto);
   }
 
   @Patch('updateService')
+  @UseGuards(JwtGuard, AdminGuard)
   @ApiResponse({ type: ServiceResponseDto })
   async updateService(@Body() dto: UpdateServiceRequestDto) {
     return this.serviceService.updateService(dto);
   }
 
   @Patch('delete/:id')
+  @UseGuards(JwtGuard, AdminGuard)
   @ApiResponse({ status: 200 })
   async deleteService(@Param('id') sericeId: string) {
     return this.serviceService.deleteService(parseInt(sericeId));
