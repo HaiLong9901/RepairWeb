@@ -1,23 +1,96 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AddressRequestDto } from './dto/request.dto';
+import {
+  CreateAddressRequestDto,
+  UpdateAddressRequestDto,
+} from './dto/request.dto';
 
 @Injectable()
 export class AddressService {
   constructor(private prisma: PrismaService) {}
-  async createAdress(dto: AddressRequestDto) {
+
+  async createAdress(dto: CreateAddressRequestDto, userId: string) {
     try {
-      const { userId } = dto;
-      const user = await this.prisma.user.findUnique({
+      const { isMainAddress } = dto;
+      if (isMainAddress) {
+        await this.prisma.userAddress.updateMany({
+          where: {
+            userId,
+          },
+          data: {
+            isMainAddress: false,
+          },
+        });
+      }
+      await this.prisma.userAddress.create({
+        data: {
+          ...dto,
+          userId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async updateAddess(dto: UpdateAddressRequestDto, userId: string) {
+    try {
+      const existedAddress = await this.prisma.userAddress.findUnique({
         where: {
+          addressId: dto.addressId,
           userId,
         },
       });
 
-      //   if (!user) {
+      if (!existedAddress) {
+        throw new NotFoundException("User's address is not found");
+      }
+      const { isMainAddress } = dto;
+      if (isMainAddress) {
+        await this.prisma.userAddress.updateMany({
+          where: {
+            userId,
+          },
+          data: {
+            isMainAddress: false,
+          },
+        });
+      }
+      await this.prisma.userAddress.update({
+        data: {
+          ...dto,
+        },
+        where: {
+          addressId: dto.addressId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+  async deleteAddress(addressId: number, userId: string) {
+    try {
+      const existedAddress = await this.prisma.userAddress.findUnique({
+        where: {
+          addressId,
+          userId,
+        },
+      });
 
-      //   }
-      return user;
-    } catch (error) {}
+      if (!existedAddress) {
+        throw new NotFoundException("User's address is not found");
+      }
+
+      await this.prisma.userAddress.delete({
+        where: {
+          addressId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }

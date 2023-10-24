@@ -8,6 +8,9 @@ import {
   Body,
   Patch,
   Req,
+  HttpCode,
+  Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -22,6 +25,12 @@ import {
 } from './dto/request';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RepairmanGuard } from 'src/auth/guard/repairman.guard';
+import {
+  CreateAddressRequestDto,
+  UpdateAddressRequestDto,
+} from 'src/address/dto/request.dto';
+import { AddressService } from 'src/address/address.service';
+import { CustomerGuard } from 'src/auth/guard/customer.guard';
 
 @Controller('user')
 @ApiTags('User')
@@ -30,6 +39,7 @@ export class UserController {
   constructor(
     private userService: UserService,
     private prisma: PrismaService,
+    private addressService: AddressService,
   ) {}
 
   @Get('getAll')
@@ -89,5 +99,32 @@ export class UserController {
   selfUpdateProfile(@Body() dto: SelfUpdateUserDto, @Req() req) {
     const { userId } = req.user;
     return this.userService.selfUpdateProfile(userId, dto);
+  }
+
+  @Post('addAddress')
+  @UseGuards(CustomerGuard)
+  @ApiResponse({ status: 204 })
+  @HttpCode(204)
+  addUserAddress(dto: CreateAddressRequestDto, @Req() req) {
+    const { userId } = req.user;
+    return this.addressService.createAdress(dto, userId);
+  }
+
+  @Patch('updateAddress')
+  @UseGuards(CustomerGuard)
+  @ApiResponse({ status: 204 })
+  @HttpCode(204)
+  updateUserAddress(dto: UpdateAddressRequestDto, @Req() req) {
+    const { userId } = req.user;
+    return this.addressService.updateAddess(dto, userId);
+  }
+
+  @Delete('deleteAddress/:id')
+  @UseGuards(CustomerGuard)
+  @ApiResponse({ status: 204 })
+  @HttpCode(204)
+  deleteUserAddress(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    const { userId } = req.user;
+    return this.addressService.deleteAddress(id, userId);
   }
 }

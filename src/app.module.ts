@@ -10,6 +10,7 @@ import { AddressModule } from './address/address.module';
 import { SkillModule } from './skill/skill.module';
 import { ServiceService } from './service/service.service';
 import { ServiceController } from './service/service.controller';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ServiceController } from './service/service.controller';
     OtpModule,
     AddressModule,
     SkillModule,
+    ReviewModule,
   ],
   controllers: [AppController, ServiceController],
   providers: [AppService, ServiceService],

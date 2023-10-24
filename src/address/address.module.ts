@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AddressService } from './address.service';
 
 @Module({
-  providers: [AddressService]
+  providers: [AddressService],
+  exports: [AddressService],
 })
 export class AddressModule {}
