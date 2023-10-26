@@ -25,7 +25,7 @@ export class CreateUserReqestDto {
   lastName: string;
 
   @ApiProperty()
-  @IsDate()
+  @IsString()
   dob: string;
 
   @ApiProperty()
@@ -70,7 +70,7 @@ export class UpdateUserRequestDto {
   lastName: string;
 
   @ApiProperty()
-  @IsDate()
+  @IsString()
   dob: string;
 
   @ApiProperty()
@@ -113,7 +113,7 @@ export class SelfUpdateUserDto {
   lastName: string;
 
   @ApiProperty()
-  @IsDate()
+  @IsString()
   dob: string;
 
   @ApiProperty()

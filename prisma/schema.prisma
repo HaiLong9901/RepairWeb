@@ -142,15 +142,15 @@ model Order {
   orderId     BigInt   @id @default(autoincrement())
   code        String
   status      Int
-  total       BigInt
+  total       BigInt?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   expectDate  String
   userId      String
-  repairmanId String
+  repairmanId String?
 
-  user      User @relation("user", fields: [userId], references: [userId])
-  repairman User @relation("repairman", fields: [repairmanId], references: [userId])
+  user      User  @relation("user", fields: [userId], references: [userId])
+  repairman User? @relation("repairman", fields: [repairmanId], references: [userId])
 
   orderDetails OrderDetail[]
   transactions Transaction[]

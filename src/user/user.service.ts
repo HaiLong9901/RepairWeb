@@ -281,7 +281,8 @@ export class UserService implements OnModuleInit {
           userId,
         },
       });
-      const isMatch = await argon.verify(dto.oldPassword, user.password);
+
+      const isMatch = await argon.verify(user.password, dto.oldPassword);
       if (!isMatch) {
         throw new ForbiddenException('Password is wrong');
       }

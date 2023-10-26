@@ -11,6 +11,7 @@ import { SkillModule } from './skill/skill.module';
 import { ServiceService } from './service/service.service';
 import { ServiceController } from './service/service.controller';
 import { ReviewModule } from './review/review.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ReviewModule } from './review/review.module';
     AddressModule,
     SkillModule,
     ReviewModule,
+    OrderModule,
   ],
   controllers: [AppController, ServiceController],
   providers: [AppService, ServiceService],

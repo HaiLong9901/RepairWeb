@@ -88,13 +88,17 @@ export class UserController {
   }
 
   @Patch('changePassword')
+  @UseGuards(JwtGuard)
   @ApiResponse({ type: SwitchUserStatusResponseDto })
   changePassword(@Body() dto: ChangePasswordDto, @Req() req) {
+    console.log('call...');
+    console.log(req.user);
     const { userId } = req.user;
     return this.userService.changePassword(userId, dto);
   }
 
   @Patch('updateProfile')
+  @UseGuards(JwtGuard)
   @ApiResponse({ type: UserResponseDto })
   selfUpdateProfile(@Body() dto: SelfUpdateUserDto, @Req() req) {
     const { userId } = req.user;
