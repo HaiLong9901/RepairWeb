@@ -17,6 +17,9 @@ export class DetailOrderRequestDto {
   @ApiProperty()
   @IsString()
   desc: string;
+
+  @ApiProperty()
+  media: OrderMediaRequestDto[];
 }
 
 export class OrderMediaRequestDto {
@@ -68,4 +71,13 @@ export class OrderRequestDto {
 
   @ApiProperty()
   orderDetail?: DetailOrderRequestDto[];
+}
+
+export class UpdateOrderStatusRequestDto {
+  @ApiProperty()
+  @IsPositive()
+  orderId: number;
+
+  @ApiProperty()
+  status: number;
 }
