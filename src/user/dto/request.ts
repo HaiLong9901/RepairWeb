@@ -59,10 +59,6 @@ export class UpdateUserRequestDto {
 
   @ApiProperty()
   @IsString()
-  accountName: string;
-
-  @ApiProperty()
-  @IsString()
   firstName: string;
 
   @ApiProperty()
