@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   OrderRequestDto,
@@ -81,12 +81,15 @@ export class OrderService {
     }
   }
 
-  async updateOrderStatus(user: User, dto: UpdateOrderStatusRequestDto) {
-    const { userId, role } = user;
+  async cancelOrder(userId: User, dto: UpdateOrderStatusRequestDto) {
     const { status } = dto;
 
-    if (role === Role.ROLE_USER && status !== OrderStatus.REJECTED) {
+    if (status !== OrderStatus.REJECTED) {
+      return new ForbiddenException(
+        'You are not permited to change this status',
+      );
     }
+
     try {
     } catch (error) {}
   }

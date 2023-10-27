@@ -66,6 +66,7 @@ export class UpdateUserRequestDto {
   firstName: string;
 
   @ApiProperty()
+  @IsString()
   lastName: string;
 
   @ApiProperty()
