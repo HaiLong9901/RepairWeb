@@ -12,6 +12,8 @@ import { ServiceService } from './service/service.service';
 import { ServiceController } from './service/service.controller';
 import { ReviewModule } from './review/review.module';
 import { OrderModule } from './order/order.module';
+import { MalfunctionModule } from './malfunction/malfunction.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { OrderModule } from './order/order.module';
     SkillModule,
     ReviewModule,
     OrderModule,
+    MalfunctionModule,
+    NotificationModule,
   ],
   controllers: [AppController, ServiceController],
   providers: [AppService, ServiceService],
