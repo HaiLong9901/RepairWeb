@@ -31,4 +31,7 @@ export class ServiceResponseDto {
 
   @ApiProperty()
   updatedAt: string;
+
+  @ApiProperty()
+  image: string;
 }

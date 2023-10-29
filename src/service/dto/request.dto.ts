@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsPositive, IsString } from 'class-validator';
+import { IsOptional, IsPositive, IsString } from 'class-validator';
 
 export class CreateServiceRequestDto {
   @ApiProperty()
@@ -21,6 +21,11 @@ export class CreateServiceRequestDto {
   @ApiProperty()
   @IsPositive()
   skillId: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  image: string;
 }
 export class UpdateServiceRequestDto {
   @ApiProperty()
@@ -48,4 +53,9 @@ export class UpdateServiceRequestDto {
   @ApiProperty()
   @IsPositive()
   skillId: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  image: string;
 }

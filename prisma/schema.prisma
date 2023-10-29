@@ -119,6 +119,7 @@ model Service {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   skillId   Int
+  image     String?
   isActive  Boolean  @default(true)
 
   skill        Skill                 @relation(fields: [skillId], references: [skillId])
@@ -139,15 +140,17 @@ model MalfunctionCategory {
 }
 
 model Order {
-  orderId     BigInt   @id @default(autoincrement())
-  code        String
-  status      Int
-  total       BigInt?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  expectDate  String
-  userId      String
-  repairmanId String?
+  orderId            BigInt   @id @default(autoincrement())
+  code               String
+  status             Int
+  total              BigInt?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  expectDate         String
+  userId             String
+  repairmanId        String?
+  incurredCost       BigInt?
+  incurredCostReason String?
 
   user      User  @relation("user", fields: [userId], references: [userId])
   repairman User? @relation("repairman", fields: [repairmanId], references: [userId])

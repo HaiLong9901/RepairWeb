@@ -6,6 +6,7 @@ import {
   Post,
   Body,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -30,7 +31,7 @@ export class ServiceController {
 
   @Get(':id')
   @ApiResponse({ type: ServiceResponseDto })
-  async getServiceById(@Param('id') id: number) {
+  async getServiceById(@Param('id', ParseIntPipe) id: number) {
     return this.serviceService.getServiceById(id);
   }
 
@@ -63,13 +64,13 @@ export class ServiceController {
 
   @Get('getServiceByType/:type')
   @ApiResponse({ type: ServiceResponseDto, isArray: true })
-  async getAllServiceByType(@Param('type') type: number) {
+  async getAllServiceByType(@Param('type', ParseIntPipe) type: number) {
     return this.serviceService.getServiceByType(type);
   }
 
   @Get('getServiceBySkill/:skillId')
   @ApiResponse({ type: ServiceResponseDto, isArray: true })
-  async getAllServiceBySkill(@Param('skillId') skillId: number) {
+  async getAllServiceBySkill(@Param('skillId', ParseIntPipe) skillId: number) {
     return this.serviceService.getServiceBySkill(skillId);
   }
 }
