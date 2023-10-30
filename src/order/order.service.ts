@@ -22,9 +22,10 @@ export class OrderService {
       const order = await this.prisma.order.create({
         data: {
           userId: userId,
-          code: dto.userId.slice(3, 10) + Date.now(),
+          code: userId.slice(3, 10) + Date.now(),
           expectDate: dto.expectDate,
           status: OrderStatus.PENDING,
+          addressId: dto.addressId,
         },
       });
 
@@ -117,6 +118,7 @@ export class OrderService {
             },
           },
           repairman: true,
+          address: true,
         },
       });
 
@@ -191,6 +193,7 @@ export class OrderService {
           repairman: true,
           user: true,
           components: true,
+          address: true,
         },
         orderBy: {
           updatedAt: 'desc',

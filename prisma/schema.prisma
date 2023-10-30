@@ -54,6 +54,7 @@ model UserAddress {
   isMainAddress Boolean
   userId        String
   user          User    @relation(fields: [userId], references: [userId])
+  orders        Order[]
 }
 
 model Review {
@@ -151,9 +152,11 @@ model Order {
   repairmanId        String?
   incurredCost       BigInt?
   incurredCostReason String?
+  addressId          Int
 
-  user      User  @relation("user", fields: [userId], references: [userId])
-  repairman User? @relation("repairman", fields: [repairmanId], references: [userId])
+  user      User        @relation("user", fields: [userId], references: [userId])
+  repairman User?       @relation("repairman", fields: [repairmanId], references: [userId])
+  address   UserAddress @relation(fields: [addressId], references: [addressId])
 
   orderDetails OrderDetail[]
   transactions Transaction[]

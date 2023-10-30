@@ -1,94 +1,64 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
 
-export class DetailOrderRequestDto {
+export class OrderDetailReponseDto {
   @ApiProperty()
-  @IsPositive()
   orderDetailId?: number;
 
   @ApiProperty()
-  @IsPositive()
   orderId?: number;
 
   @ApiProperty()
-  @IsPositive()
   serviceId: number;
 
   @ApiProperty()
-  @IsString()
   desc: string;
 
   @ApiProperty()
-  media: OrderMediaRequestDto[];
+  media: OrderMediaReponseDto[];
 }
 
-export class OrderMediaRequestDto {
+export class OrderMediaReponseDto {
   @ApiProperty()
-  @IsPositive()
   orderMediaId: number;
 
   @ApiProperty()
-  @IsPositive()
   orderDetailId?: number;
 
   @ApiProperty()
-  @IsPositive()
   mediaType: number;
 
   @ApiProperty()
-  @IsString()
   url: string;
 
   @ApiProperty()
-  @IsString()
   alt?: string;
 }
 
-export class OrderRequestDto {
+export class OrderReponseDto {
   @ApiProperty()
-  @IsPositive()
   orderId: number;
 
   @ApiProperty()
-  @IsString()
   code: string;
 
   @ApiProperty()
-  @IsPositive()
   status: number;
 
   @ApiProperty()
-  @IsString()
   expectDate: string;
 
   @ApiProperty()
-  @IsString()
-  @IsOptional()
   repairmanId?: string;
 
   @ApiProperty()
-  @IsNumber()
   addressId: number;
 
   @ApiProperty()
-  @IsOptional()
-  @IsNumber()
   incurredCost?: number;
 
   @ApiProperty()
-  @IsOptional()
-  @IsNumber()
   incurredCostReason: string;
 
   @ApiProperty()
-  orderDetail?: DetailOrderRequestDto[];
-}
-
-export class UpdateOrderStatusRequestDto {
-  @ApiProperty()
-  @IsPositive()
-  orderId: number;
-
-  @ApiProperty()
-  status: number;
+  orderDetail?: OrderDetailReponseDto[];
 }
