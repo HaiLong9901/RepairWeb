@@ -195,7 +195,7 @@ export class ServiceService {
         throw new NotFoundException('No service found');
       }
 
-      return services;
+      return services.map((value) => formatBigInt(value));
     } catch (error) {
       console.log(error);
       throw error;

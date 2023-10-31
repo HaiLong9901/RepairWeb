@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from 'class-validator';
 
 export class DetailOrderRequestDto {
   @ApiProperty()
@@ -91,4 +97,62 @@ export class UpdateOrderStatusRequestDto {
 
   @ApiProperty()
   status: number;
+}
+
+export class DiagnosisRequestDto {
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  diagnosisId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  orderDetailId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  malfuncId: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  isAccept: boolean;
+}
+
+export class ComponentRequestDto {
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  componentId: number;
+
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsPositive()
+  quantity: number;
+
+  @ApiProperty()
+  @IsString()
+  unit: string;
+
+  @ApiProperty()
+  @IsPositive()
+  pricePerUnit: number;
+
+  @ApiProperty()
+  @IsPositive()
+  brand: string;
+
+  @ApiProperty()
+  @IsString()
+  model: string;
+
+  @ApiProperty()
+  @IsString()
+  supplier: string;
+
+  @ApiProperty()
+  @IsPositive()
+  orderId: number;
 }

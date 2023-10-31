@@ -50,7 +50,8 @@ model Otp {
 model UserAddress {
   addressId     Int     @id @default(autoincrement())
   address       String
-  coordinate    String
+  longitude     Int
+  latitude      Int
   isMainAddress Boolean
   userId        String
   user          User    @relation(fields: [userId], references: [userId])

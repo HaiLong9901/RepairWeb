@@ -1,10 +1,12 @@
 import {
   ForbiddenException,
   Injectable,
+  NotFoundException,
   // UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
+  DiagnosisRequestDto,
   OrderRequestDto,
   // UpdateOrderStatusRequestDto,
 } from './dto/request.dto';
@@ -12,6 +14,7 @@ import { OrderStatus } from 'src/enum/order-status.enum';
 import { User } from '@prisma/client';
 import { Role } from 'src/enum/role';
 import { formatBigInt } from 'src/utils/formatResponse';
+import e from 'express';
 
 @Injectable()
 export class OrderService {
@@ -252,4 +255,128 @@ export class OrderService {
       throw error;
     }
   }
+
+  async createDiagnosis(dto: DiagnosisRequestDto) {
+    try {
+      const { orderDetailId, malfuncId } = dto;
+      const existedOrderDetail = await this.prisma.orderDetail.findUnique({
+        where: {
+          orderDetailId,
+        },
+      });
+
+      if (!existedOrderDetail) {
+        throw new NotFoundException('Order detail is not found');
+      }
+
+      const existedMalfunction =
+        await this.prisma.malfunctionCategory.findUnique({
+          where: {
+            malfuncId,
+          },
+        });
+
+      if (!existedMalfunction) {
+        throw new NotFoundException('Malfunction is not found');
+      }
+
+      const diagnosis = await this.prisma.diagnosis.create({
+        data: {
+          orderDetailId,
+          malfuncId,
+          isAccepted: false,
+        },
+      });
+
+      return formatBigInt(diagnosis);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async deleteDiagnosis(diagnosisId: number) {
+    try {
+      const existedDiagnosis = await this.prisma.diagnosis.findUnique({
+        where: {
+          diagnosisId,
+        },
+      });
+
+      if (!existedDiagnosis) {
+        throw new NotFoundException('Diagnosis is not found');
+      }
+
+      await this.prisma.diagnosis.delete({
+        where: {
+          diagnosisId,
+        },
+      });
+
+      return {
+        message: 'Delete diagnosis successfully',
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async toggleAcceptDiagnosis(diagnosisId: number, userId: string) {
+    try {
+      const existedDiagnosis = await this.prisma.diagnosis.findUnique({
+        where: {
+          diagnosisId,
+        },
+        include: {
+          orderDetail: {
+            include: {
+              order: true,
+            },
+          },
+          malfunction: true,
+        },
+      });
+
+      if (!existedDiagnosis) {
+        return new ForbiddenException('Diagnosis is not found');
+      }
+
+      if (existedDiagnosis.orderDetail.order.userId !== userId) {
+        throw new ForbiddenException(
+          'You are not permitted to make changes for this order',
+        );
+      }
+
+      const updatedDiagnosis = await this.prisma.diagnosis.update({
+        where: {
+          diagnosisId,
+        },
+        data: {
+          isAccepted: existedDiagnosis.isAccepted ? false : true,
+        },
+      });
+      const orderTotal = existedDiagnosis.orderDetail.order.total;
+      const diagnosisPrice = existedDiagnosis.malfunction.price;
+      await this.prisma.order.update({
+        where: {
+          orderId: existedDiagnosis.orderDetail.order.orderId,
+        },
+        data: {
+          total: updatedDiagnosis.isAccepted
+            ? orderTotal + diagnosisPrice
+            : orderTotal - diagnosisPrice,
+        },
+      });
+
+      return {
+        message: 'Accept/UnAccept successfully',
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async createComponent(dto);
 }

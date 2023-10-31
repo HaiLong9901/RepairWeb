@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsPositive, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from 'class-validator';
 
 export class CreateAddressRequestDto {
   @ApiProperty()
@@ -7,11 +13,17 @@ export class CreateAddressRequestDto {
   address: string;
 
   @ApiProperty()
-  @IsString()
-  coordinate: string;
+  @IsNumber()
+  @IsOptional()
+  longitude: number;
+
+  @ApiProperty()
+  @IsNumber()
+  latitude: number;
 
   @ApiProperty()
   @IsBoolean()
+  @IsOptional()
   isMainAddress: boolean;
 }
 
