@@ -156,3 +156,13 @@ export class ComponentRequestDto {
   @IsPositive()
   orderId: number;
 }
+
+export class CancelOrderRequestDto {
+  @ApiProperty()
+  @IsString()
+  reason: string;
+
+  @ApiProperty()
+  @IsNumber()
+  orderId: number;
+}

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class NotificationRequestDto {
   @ApiProperty()
@@ -8,7 +8,8 @@ export class NotificationRequestDto {
 
   @ApiProperty()
   @IsBoolean()
-  isSeen: boolean;
+  @IsOptional()
+  isSeen?: boolean;
 
   @ApiProperty()
   @IsString()

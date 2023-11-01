@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
+  CancelOrderRequestDto,
+  ComponentRequestDto,
   DiagnosisRequestDto,
   OrderRequestDto,
   // UpdateOrderStatusRequestDto,
@@ -14,11 +16,14 @@ import { OrderStatus } from 'src/enum/order-status.enum';
 import { User } from '@prisma/client';
 import { Role } from 'src/enum/role';
 import { formatBigInt } from 'src/utils/formatResponse';
-import e from 'express';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class OrderService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
 
   async createOrder(dto: OrderRequestDto, userId: string) {
     try {
@@ -90,22 +95,42 @@ export class OrderService {
     }
   }
 
-  // async cancelOrder(user: User, dto: UpdateOrderStatusRequestDto) {
-  //   const { userId, role } = user;
-  //   const { status } = dto;
+  async cancelOrder(user: User, dto: CancelOrderRequestDto) {
+    const { userId, role } = user;
+    try {
+      const existedOrder = await this.prisma.order.findUnique({
+        where: {
+          orderId: dto.orderId,
+        },
+      });
 
-  //   if (role === Role.ROLE_USER && status !== OrderStatus.REJECTED) {
-  //     return new ForbiddenException(
-  //       'You are not permited to change this status',
-  //     );
-  //   }
+      if (!existedOrder) {
+        return new NotFoundException('Order is not found');
+      }
 
-  //   // if (role === Role.ROLE_REPAIRMAN) {
-  //   //   if (status === OrderStatus)
-  //   // }
-  //   try {
-  //   } catch (error) {}
-  // }
+      if (role === Role.ROLE_USER && userId !== existedOrder.userId) {
+        return new ForbiddenException(
+          'You are not permited to change this order',
+        );
+      }
+
+      await this.prisma.order.update({
+        where: {
+          orderId: dto.orderId,
+        },
+        data: {
+          status: OrderStatus.REJECTED,
+        },
+      });
+      await this.notificationService.createNotification({
+        userId: existedOrder.userId,
+        content: dto.reason,
+      });
+      return {
+        message: 'Cancel order successfully',
+      };
+    } catch (error) {}
+  }
 
   async getOrderById(orderId: number, user: User) {
     try {
@@ -138,8 +163,8 @@ export class OrderService {
     }
   }
 
-  async getAllOrder(req: any) {
-    const { from, to, status, repairmanId } = req;
+  async getAllOrder(query: any) {
+    const { from, to, status, repairmanId, page, limit } = query;
     let searchTime = {};
     if (from) {
       searchTime = {
@@ -178,6 +203,14 @@ export class OrderService {
       };
     }
 
+    let pagination = {};
+    if (page && limit) {
+      pagination = {
+        skip: (parseInt(page) - 1) * parseInt(limit),
+        take: parseInt(limit),
+      };
+    }
+
     try {
       const orders = await this.prisma.order.findMany({
         where: {
@@ -201,6 +234,7 @@ export class OrderService {
         orderBy: {
           updatedAt: 'desc',
         },
+        ...pagination,
       });
 
       return formatBigInt(orders);
@@ -210,9 +244,9 @@ export class OrderService {
     }
   }
 
-  async getOrdersByUserId(user: User, req: any, orderUserId: string) {
+  async getOrdersByUserId(user: User, query: any, orderUserId: string) {
     const { userId, role } = user;
-    const { status } = req;
+    const { status } = query;
     if (userId !== orderUserId && role === Role.ROLE_USER) {
       throw new ForbiddenException(
         'You are not permitted to access this asset',
@@ -256,17 +290,26 @@ export class OrderService {
     }
   }
 
-  async createDiagnosis(dto: DiagnosisRequestDto) {
+  async createDiagnosis(dto: DiagnosisRequestDto, repairmanId: string) {
     try {
       const { orderDetailId, malfuncId } = dto;
       const existedOrderDetail = await this.prisma.orderDetail.findUnique({
         where: {
           orderDetailId,
         },
+        include: {
+          order: true,
+        },
       });
 
       if (!existedOrderDetail) {
         throw new NotFoundException('Order detail is not found');
+      }
+
+      if (repairmanId !== existedOrderDetail.order.repairmanId) {
+        throw new ForbiddenException(
+          'You are not permitted to make change for this order',
+        );
       }
 
       const existedMalfunction =
@@ -378,5 +421,64 @@ export class OrderService {
     }
   }
 
-  async createComponent(dto);
+  async createComponent(dto: ComponentRequestDto, repairmanId: string) {
+    try {
+      const existedOrder = await this.prisma.order.findUnique({
+        where: {
+          orderId: dto.orderId,
+        },
+      });
+
+      if (!existedOrder) {
+        throw new NotFoundException('Order is not found');
+      }
+
+      if (repairmanId !== existedOrder.repairmanId) {
+        return new ForbiddenException(
+          'You are not permitted to make change for this order',
+        );
+      }
+
+      const component = this.prisma.component.create({
+        data: {
+          ...dto,
+        },
+      });
+
+      return formatBigInt(component);
+    } catch (error) {}
+  }
+
+  async assignOrder(orderId: number, repairmanId: string) {
+    try {
+      await this.prisma.order.update({
+        where: {
+          orderId,
+        },
+        data: {
+          repairmanId,
+        },
+      });
+
+      return {
+        message: 'Assign repairman for order successfully',
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async updateOrderStatus(orderId: number, status: number) {
+    try {
+      await this.prisma.order.update({
+        where: {
+          orderId,
+        },
+        data: {
+          status,
+        },
+      });
+    } catch (error) {}
+  }
 }

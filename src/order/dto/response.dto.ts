@@ -62,3 +62,46 @@ export class OrderReponseDto {
   @ApiProperty()
   orderDetail?: OrderDetailReponseDto[];
 }
+
+export class DiagnosisResponseDto {
+  @ApiProperty()
+  diagnosisId: number;
+
+  @ApiProperty()
+  orderDetailId: number;
+
+  @ApiProperty()
+  malfuncId: number;
+
+  @ApiProperty()
+  isAccept: boolean;
+}
+
+export class ComponentResponsetDto {
+  @ApiProperty()
+  componentId: number;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  quantity: number;
+
+  @ApiProperty()
+  unit: string;
+
+  @ApiProperty()
+  pricePerUnit: number;
+
+  @ApiProperty()
+  brand: string;
+
+  @ApiProperty()
+  model: string;
+
+  @ApiProperty()
+  supplier: string;
+
+  @ApiProperty()
+  orderId: number;
+}
