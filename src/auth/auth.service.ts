@@ -10,6 +10,7 @@ import { generateVNeseAccName } from 'src/utils/formatString';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { AuthSignInRequestDto } from './dto/auth-signin.dto';
 import { formatBigInt } from 'src/utils/formatResponse';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private mailService: MailService,
   ) {}
 
   async signUp(dto: AuthSignUpRequestDto) {
@@ -65,8 +67,8 @@ export class AuthService {
             gender: dto.gender,
           },
         });
-
-        delete user.password;
+        await this.mailService.sendUserOtp(user, '123456');
+        await delete user.password;
 
         return user;
       }
