@@ -68,6 +68,9 @@ export class ServiceService {
         where: {
           isActive: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       return services.map((value) => {
@@ -86,6 +89,10 @@ export class ServiceService {
           serviceId,
           isActive: true,
         },
+        include: {
+          malfunctions: true,
+          skill: true,
+        },
       });
 
       if (!service) {
@@ -99,7 +106,7 @@ export class ServiceService {
     }
   }
 
-  async deleteService(serviceId: number) {
+  async toggleServiceActive(serviceId: number) {
     try {
       const existedService = await this.prisma.service.findUnique({
         where: {
@@ -111,7 +118,7 @@ export class ServiceService {
       }
       await this.prisma.service.update({
         data: {
-          isActive: false,
+          isActive: existedService.isActive ? false : true,
         },
         where: {
           serviceId,
@@ -139,6 +146,9 @@ export class ServiceService {
         include: {
           skill: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       if (!services || services.length === 0) {
@@ -164,6 +174,9 @@ export class ServiceService {
         include: {
           skill: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       if (!services || services.length === 0) {
@@ -188,6 +201,9 @@ export class ServiceService {
         },
         include: {
           skill: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       });
 

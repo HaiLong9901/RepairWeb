@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Skill } from '@prisma/client';
+import { MalfunctionCategory, Skill } from '@prisma/client';
 
 export class ServiceResponseDto {
   @ApiProperty()
@@ -34,4 +34,7 @@ export class ServiceResponseDto {
 
   @ApiProperty()
   image: string;
+
+  @ApiProperty()
+  malfunction: MalfunctionCategory[];
 }

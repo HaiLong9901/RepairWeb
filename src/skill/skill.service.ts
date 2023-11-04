@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   CreateSkillRequestDto,
@@ -14,6 +18,7 @@ export class SkillService {
       const skill = await this.prisma.skill.create({
         data: {
           name: dto.name,
+          isActive: true,
         },
       });
 
@@ -54,7 +59,11 @@ export class SkillService {
 
   async getAllSkill() {
     try {
-      const skills = await this.prisma.skill.findMany();
+      const skills = await this.prisma.skill.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
 
       return skills;
     } catch (error) {
@@ -75,6 +84,32 @@ export class SkillService {
         throw new NotFoundException('Kỹ năng không tồn tại');
       }
       return skill;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async toggleSkillActive(skillId: number) {
+    try {
+      const existedSkill = await this.prisma.skill.findUnique({
+        where: {
+          skillId,
+        },
+      });
+
+      if (!existedSkill) {
+        return new ForbiddenException('Skill is not found');
+      }
+
+      await this.prisma.skill.update({
+        where: {
+          skillId,
+        },
+        data: {
+          isActive: existedSkill.isActive ? false : true,
+        },
+      });
     } catch (error) {
       console.log(error);
       throw error;

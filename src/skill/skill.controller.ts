@@ -25,27 +25,34 @@ export class SkillController {
 
   @Get('getAll')
   @ApiResponse({ type: SkillResponseDto, isArray: true, status: 200 })
-  async getAllSkill() {
+  getAllSkill() {
     return this.skillService.getAllSkill();
   }
 
   @Get(':id')
   @ApiResponse({ type: SkillResponseDto })
-  async getSkillById(@Param('id', ParseIntPipe) id: number) {
+  getSkillById(@Param('id', ParseIntPipe) id: number) {
     return this.skillService.getSkillById(id);
   }
 
   @Post('createSkill')
   @UseGuards(JwtGuard, AdminGuard)
   @ApiResponse({ type: SkillResponseDto })
-  async createSkill(@Body() dto: CreateSkillRequestDto) {
+  createSkill(@Body() dto: CreateSkillRequestDto) {
     return this.skillService.createSkill(dto);
   }
 
   @Patch('updateSkill')
   @UseGuards(JwtGuard, AdminGuard)
   @ApiResponse({ type: SkillResponseDto })
-  async updateSkill(@Body() dto: UpdateSkillRequestDto) {
+  updateSkill(@Body() dto: UpdateSkillRequestDto) {
     return this.skillService.updateSkill(dto);
+  }
+
+  @Patch('toggleSkillActive/:skillId')
+  @UseGuards(JwtGuard, AdminGuard)
+  @ApiResponse({ status: 204 })
+  toggleSkillActive(@Param('skillId', ParseIntPipe) skillId: number) {
+    return this.skillService.toggleSkillActive(skillId);
   }
 }

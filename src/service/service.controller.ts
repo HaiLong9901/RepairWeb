@@ -52,8 +52,8 @@ export class ServiceController {
   @Patch('delete/:id')
   @UseGuards(JwtGuard, AdminGuard)
   @ApiResponse({ status: 200 })
-  async deleteService(@Param('id') sericeId: string) {
-    return this.serviceService.deleteService(parseInt(sericeId));
+  async toggleServiceActive(@Param('id') sericeId: string) {
+    return this.serviceService.toggleServiceActive(parseInt(sericeId));
   }
 
   @Get('getServiceByName/:keyword')

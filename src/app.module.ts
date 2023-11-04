@@ -15,6 +15,7 @@ import { OrderModule } from './order/order.module';
 import { MalfunctionModule } from './malfunction/malfunction.module';
 import { NotificationModule } from './notification/notification.module';
 import { MailModule } from './mail/mail.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MailModule } from './mail/mail.module';
     MalfunctionModule,
     NotificationModule,
     MailModule,
+    CartModule,
   ],
   controllers: [AppController, ServiceController],
   providers: [AppService, ServiceService],
