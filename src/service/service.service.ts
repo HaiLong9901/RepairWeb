@@ -151,10 +151,6 @@ export class ServiceService {
         },
       });
 
-      if (!services || services.length === 0) {
-        throw new NotFoundException('No service found');
-      }
-
       return services.map((value) => {
         return formatBigInt(value);
       });
@@ -179,10 +175,6 @@ export class ServiceService {
         },
       });
 
-      if (!services || services.length === 0) {
-        throw new NotFoundException('No service found');
-      }
-
       return services.map((value) => {
         return formatBigInt(value);
       });
@@ -194,6 +186,14 @@ export class ServiceService {
 
   async getServiceBySkill(skillId: number) {
     try {
+      const existedSkill = await this.prisma.skill.findUnique({
+        where: {
+          skillId,
+        },
+      });
+      if (!existedSkill) {
+        throw new NotFoundException('Skill is not found');
+      }
       const services = await this.prisma.service.findMany({
         where: {
           skillId: skillId,
@@ -206,10 +206,6 @@ export class ServiceService {
           createdAt: 'desc',
         },
       });
-
-      if (!services || services.length === 0) {
-        throw new NotFoundException('No service found');
-      }
 
       return services.map((value) => formatBigInt(value));
     } catch (error) {
