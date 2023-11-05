@@ -7,6 +7,8 @@ import {
   Body,
   UseGuards,
   ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -17,6 +19,7 @@ import {
 } from './dto/request.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('service')
 @ApiTags('Service')
@@ -37,8 +40,14 @@ export class ServiceController {
 
   @Post('createService')
   @UseGuards(JwtGuard, AdminGuard)
+  @UseInterceptors(FileInterceptor('image'))
   @ApiResponse({ type: ServiceResponseDto })
-  async createService(@Body() dto: CreateServiceRequestDto) {
+  async createService(
+    @Body() dto: CreateServiceRequestDto,
+    @UploadedFile() image,
+  ) {
+    const imageUrl = image.buffer.toString('base64');
+    dto.image = imageUrl;
     return this.serviceService.createService(dto);
   }
 

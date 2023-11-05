@@ -65,9 +65,6 @@ export class ServiceService {
         include: {
           skill: true,
         },
-        where: {
-          isActive: true,
-        },
         orderBy: {
           createdAt: 'desc',
         },
@@ -87,7 +84,6 @@ export class ServiceService {
       const service = await this.prisma.service.findUnique({
         where: {
           serviceId,
-          isActive: true,
         },
         include: {
           malfunctions: true,
@@ -141,7 +137,6 @@ export class ServiceService {
               },
             },
           ],
-          isActive: true,
         },
         include: {
           skill: true,
@@ -165,7 +160,6 @@ export class ServiceService {
       const services = await this.prisma.service.findMany({
         where: {
           type: type,
-          isActive: true,
         },
         include: {
           skill: true,
@@ -197,7 +191,6 @@ export class ServiceService {
       const services = await this.prisma.service.findMany({
         where: {
           skillId: skillId,
-          isActive: true,
         },
         include: {
           skill: true,

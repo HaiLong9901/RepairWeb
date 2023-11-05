@@ -1,7 +1,15 @@
-import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Req,
+  Query,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthSignUpRequestDto } from './dto/auth-signup.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import {
   AuthSignInRequestDto,
   AuthSignInResponseDto,
@@ -37,16 +45,29 @@ export class AuthController {
     return this.authService.signToken(dto.phone, dto.password);
   }
 
-  @Get('getOtp')
-  getOtp(@Body() { email }: { email: string }) {
-    return this.otpService.sendOtp(email);
-  }
-
   @Get('getProfile')
   @UseGuards(JwtGuard)
   @ApiResponse({ type: UserResponseDto })
   getProfile(@Req() req) {
     const { userId } = req.user;
     return this.authService.getProfile(userId);
+  }
+
+  @Post('verifyOtp')
+  @ApiQuery({ name: 'userId', required: true })
+  @ApiQuery({ name: 'otp', required: true })
+  @ApiResponse({ status: 204 })
+  verifyOtp(@Query() query) {
+    const { userId, otp } = query;
+    return this.otpService.verifyOtp(userId, otp);
+  }
+
+  @Post('resendOtp')
+  @ApiQuery({ name: 'email', required: true })
+  @ApiQuery({ name: 'phone', required: true })
+  @ApiResponse({ status: 204 })
+  resendOtp(@Query() query) {
+    const { email, phone } = query;
+    return this.authService.resendOtp(email, phone);
   }
 }

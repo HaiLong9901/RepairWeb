@@ -1,24 +1,31 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { User } from '@prisma/client';
+import { CartService } from 'src/cart/cart.service';
+import { UserStatus } from 'src/enum/user-status';
+import { MailService } from 'src/mail/mail.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class OtpService {
-  constructor(private prisma: PrismaService) {}
-  async generateOtp(userId: string) {
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+    private cartService: CartService,
+  ) {}
+
+  async generateOtp(user: User) {
     const otpLength = 6;
     let otp = '';
     for (let i = 0; i < otpLength; i++) {
       otp += Math.floor(Math.random() * 10).toString();
     }
+    const expireAt = new Date();
+    expireAt.setMinutes(expireAt.getMinutes() + 1);
     try {
       const otpForUser = await this.prisma.otp.create({
         data: {
-          userId: userId,
+          userId: user.userId,
           code: otp,
-          expireAt: new Date(),
+          expireAt,
         },
       });
 
@@ -35,38 +42,35 @@ export class OtpService {
         where: {
           code: otp,
           userId: userId,
+          expireAt: {
+            gte: new Date(),
+          },
         },
       });
 
       if (!foundOtp) {
-        throw new NotFoundException('Mã xác thực không chính xác');
+        throw new NotFoundException('OTP is incorrect or expired');
       }
 
-      if (new Date(foundOtp.expireAt) < new Date()) {
-        throw new ForbiddenException('Mã xác thực đã hết hạn');
-      }
-
-      return true;
+      await this.prisma.user.update({
+        where: {
+          userId,
+        },
+        data: {
+          status: UserStatus.ACTIVE,
+        },
+      });
+      await this.cartService.createCart(userId);
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
 
-  async sendOtp(email: string) {
+  async sendOtp(user: User) {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
-
-      if (!user) {
-        throw new NotFoundException('Email không tồn tại');
-      }
-
-      const otp = await this.generateOtp(user.userId);
-      return otp;
+      const otp = await this.generateOtp(user);
+      await this.mailService.sendUserOtp(user, otp.code);
     } catch (error) {
       console.log(error);
       throw error;

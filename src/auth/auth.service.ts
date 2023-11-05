@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
@@ -10,7 +14,8 @@ import { generateVNeseAccName } from 'src/utils/formatString';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { AuthSignInRequestDto } from './dto/auth-signin.dto';
 import { formatBigInt } from 'src/utils/formatResponse';
-import { MailService } from 'src/mail/mail.service';
+import { OtpService } from 'src/otp/otp.service';
+import { CartService } from 'src/cart/cart.service';
 
 @Injectable()
 export class AuthService {
@@ -18,60 +23,57 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
-    private mailService: MailService,
+    private otpService: OtpService,
+    private cartService: CartService,
   ) {}
 
   async signUp(dto: AuthSignUpRequestDto) {
-    const hashPassword = await argon.hash(dto.password);
-
     try {
+      const hashPassword = await argon.hash(dto.password);
       const userId = this.generateCustomerId(dto.phone);
       const accName =
         generateVNeseAccName(dto.lastName + ' ' + dto.firstName) +
         userId.slice(7, userId.length);
-      const prevUser = await this.prisma.user.findFirst({
+      const existedPhone = await this.prisma.user.findUnique({
         where: {
           phone: dto.phone,
-          status: UserStatus.INACTIVE,
+          status: {
+            not: UserStatus.INACTIVE,
+          },
         },
       });
-      if (prevUser) {
-        const user = await this.prisma.user.update({
-          where: {
-            userId: prevUser.userId,
-          },
-          data: {
-            dob: dto.dob,
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            gender: dto.gender,
-            accountName: accName,
-          },
-        });
 
-        delete user.password;
-        return user;
-      } else {
-        const user = await this.prisma.user.create({
-          data: {
-            email: dto.email,
-            password: hashPassword,
-            phone: dto.phone,
-            dob: dto.dob,
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            role: Role.ROLE_USER,
-            status: UserStatus.ACTIVE,
-            userId: userId,
-            accountName: accName,
-            gender: dto.gender,
-          },
-        });
-        await this.mailService.sendUserOtp(user, '123456');
-        await delete user.password;
-
-        return user;
+      if (existedPhone) {
+        throw new ForbiddenException('Phone number has been used');
       }
+
+      const existedEmail = await this.prisma.user.findUnique({
+        where: {
+          email: dto.email,
+        },
+      });
+
+      if (existedEmail) {
+        throw new ForbiddenException('Email has been used');
+      }
+      const user = await this.prisma.user.create({
+        data: {
+          email: dto.email,
+          password: hashPassword,
+          phone: dto.phone,
+          dob: dto.dob,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          role: Role.ROLE_USER,
+          status: UserStatus.INACTIVE,
+          userId: userId,
+          accountName: accName,
+          gender: dto.gender,
+        },
+      });
+      delete user.password;
+      await this.otpService.sendOtp(user);
+      return user;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         throw new ForbiddenException('Tài khoản đã tồn tại');
@@ -146,6 +148,27 @@ export class AuthService {
       });
 
       return formatBigInt(user);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async resendOtp(email: string, phone: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          email,
+          phone,
+          status: UserStatus.INACTIVE,
+        },
+      });
+
+      if (!user) {
+        return new NotFoundException('User is not found');
+      }
+
+      await this.otpService.sendOtp(user);
     } catch (error) {
       console.log(error);
       throw error;
