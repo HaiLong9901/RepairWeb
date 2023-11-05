@@ -7,8 +7,8 @@ import {
   Body,
   UseGuards,
   ParseIntPipe,
-  UseInterceptors,
-  UploadedFile,
+  // UseInterceptors,
+  // UploadedFile,
 } from '@nestjs/common';
 import { ServiceService } from './service.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -19,7 +19,7 @@ import {
 } from './dto/request.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+// import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('service')
 @ApiTags('Service')
@@ -38,16 +38,23 @@ export class ServiceController {
     return this.serviceService.getServiceById(id);
   }
 
+  // @Post('createService')
+  // @UseGuards(JwtGuard, AdminGuard)
+  // @UseInterceptors(FileInterceptor('image'))
+  // @ApiResponse({ type: ServiceResponseDto })
+  // async createService(
+  //   @Body() dto: CreateServiceRequestDto,
+  //   @UploadedFile() image,
+  // ) {
+  //   const imageUrl = image.buffer.toString('base64');
+  //   dto.image = imageUrl;
+  //   return this.serviceService.createService(dto);
+  // }
+
   @Post('createService')
   @UseGuards(JwtGuard, AdminGuard)
-  @UseInterceptors(FileInterceptor('image'))
   @ApiResponse({ type: ServiceResponseDto })
-  async createService(
-    @Body() dto: CreateServiceRequestDto,
-    @UploadedFile() image,
-  ) {
-    const imageUrl = image.buffer.toString('base64');
-    dto.image = imageUrl;
+  async createService(@Body() dto: CreateServiceRequestDto) {
     return this.serviceService.createService(dto);
   }
 
