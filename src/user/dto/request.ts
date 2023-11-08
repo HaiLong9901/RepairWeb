@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsEmail,
+  IsOptional,
   IsPositive,
   IsString,
   IsStrongPassword,
@@ -50,6 +52,11 @@ export class CreateUserReqestDto {
   @ApiProperty()
   @IsBoolean()
   gender: boolean;
+
+  @ApiProperty()
+  @IsArray()
+  @IsOptional()
+  skills?: number[];
 }
 
 export class UpdateUserRequestDto {
@@ -84,6 +91,11 @@ export class UpdateUserRequestDto {
   @ApiProperty()
   @IsBoolean()
   gender: boolean;
+
+  @ApiProperty()
+  @IsArray()
+  @IsOptional()
+  skills: number[];
 }
 
 export class ChangePasswordDto {

@@ -6,12 +6,14 @@ import {
   UseGuards,
   Param,
   ParseIntPipe,
+  Body,
 } from '@nestjs/common';
 import { MalfunctionService } from './malfunction.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MalfunctionResponseDto } from './dto/response.dto';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { MalfunctionRequestDto } from './dto/request.dto';
+import { JwtGuard } from 'src/auth/guard/jwt.guard';
 
 @Controller('malfunction')
 @ApiTags('Malfunction')
@@ -34,14 +36,14 @@ export class MalfunctionController {
 
   @Post('createMalfunction')
   @ApiResponse({ type: MalfunctionResponseDto })
-  @UseGuards(AdminGuard)
-  createMalfunction(dto: MalfunctionRequestDto) {
+  @UseGuards(JwtGuard, AdminGuard)
+  createMalfunction(@Body() dto: MalfunctionRequestDto) {
     return this.malfunctionService.createMalfunction(dto);
   }
 
   @Patch('updateMalfunction')
   @ApiResponse({ type: MalfunctionResponseDto })
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtGuard, AdminGuard)
   updateMalfunction(dto: MalfunctionRequestDto) {
     return this.malfunctionService.updateMalfunction(dto);
   }

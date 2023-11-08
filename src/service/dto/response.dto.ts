@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { MalfunctionCategory, Skill } from '@prisma/client';
+import { Skill } from '@prisma/client';
 
 export class ServiceResponseDto {
   @ApiProperty()
@@ -24,9 +24,6 @@ export class ServiceResponseDto {
   skill: Skill;
 
   @ApiProperty()
-  skillId: number;
-
-  @ApiProperty()
   createdAt: string;
 
   @ApiProperty()
@@ -36,5 +33,21 @@ export class ServiceResponseDto {
   image: string;
 
   @ApiProperty()
-  malfunction: MalfunctionCategory[];
+  malfunction?: any;
+
+  public static formatDto(service: any): ServiceResponseDto {
+    return {
+      serviceId: service.serviceId,
+      name: service.name,
+      type: service.type,
+      price: service.price,
+      rate: service.rate,
+      desc: service.desc,
+      skill: service.skill,
+      createdAt: service.createdAt,
+      updatedAt: service.updatedAt,
+      image: service.image,
+      malfunction: service.malfunction,
+    };
+  }
 }

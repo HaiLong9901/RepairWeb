@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserStatus } from 'src/enum/user-status';
-import { formatBigInt } from 'src/utils/formatResponse';
 import { Role } from 'src/enum/role';
 import {
   ChangePasswordDto,
@@ -18,15 +17,21 @@ import { generateUserId } from 'src/utils/generateUserId';
 import { generateVNeseAccName } from 'src/utils/formatString';
 import * as argon from 'argon2';
 import { admin, customer, repairman } from './dto/mockdata';
+import { CartService } from 'src/cart/cart.service';
+import { UserResponseDto } from './dto/response';
 @Injectable()
 export class UserService implements OnModuleInit {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cartService: CartService,
+  ) {}
 
-  onModuleInit() {
-    this.prisma.cleanDb();
-    this.createUser(customer);
-    this.createUser(admin);
-    this.createUser(repairman);
+  async onModuleInit() {
+    await this.prisma.cleanDb();
+    await this.createUser(customer);
+    await this.createUser(admin);
+    await this.createUser(repairman);
+    // await this.cartService.createCart(user.userId);
   }
 
   async getUserById(userId: string) {
@@ -39,13 +44,20 @@ export class UserService implements OnModuleInit {
         where: {
           userId,
         },
+        include: {
+          repairmanSkill: {
+            include: {
+              skill: true,
+            },
+          },
+        },
       });
 
       if (!user) {
         return new NotFoundException('User is not found');
       }
 
-      return formatBigInt(user);
+      return UserResponseDto.formatDto(user);
     } catch (error) {
       console.log(error);
       throw error;
@@ -95,7 +107,7 @@ export class UserService implements OnModuleInit {
       }
 
       const users = await this.prisma.user.findMany(queryParams);
-      return users.map((user) => formatBigInt(user));
+      return users.map((user) => UserResponseDto.formatDto(user));
     } catch (error) {
       console.log(error);
       throw error;
@@ -149,8 +161,28 @@ export class UserService implements OnModuleInit {
           repairmanSkill: true,
         },
       });
-      return formatBigInt(user);
-    } catch (error) {}
+
+      if (
+        Array.isArray(dto.skills) &&
+        dto.skills.length > 0 &&
+        dto.role === Role.ROLE_REPAIRMAN
+      ) {
+        Promise.all(
+          dto.skills.map(
+            async (skillId: number) =>
+              await this.prisma.repairmanSkill.create({
+                data: {
+                  userId: user.userId,
+                  skillId: skillId,
+                },
+              }),
+          ),
+        );
+      }
+      return UserResponseDto.formatDto(user);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async updateUser(dto: UpdateUserRequestDto) {
@@ -158,6 +190,13 @@ export class UserService implements OnModuleInit {
       const existedUser = await this.prisma.user.findUnique({
         where: {
           userId: dto.userId,
+        },
+        include: {
+          repairmanSkill: {
+            include: {
+              skill: true,
+            },
+          },
         },
       });
 
@@ -188,6 +227,7 @@ export class UserService implements OnModuleInit {
           throw new ForbiddenException('Phone number has been used');
         }
       }
+
       const account =
         generateVNeseAccName(dto.lastName + ' ' + dto.firstName) +
         dto.userId.slice(7, dto.userId.length);
@@ -207,7 +247,30 @@ export class UserService implements OnModuleInit {
         },
       });
 
-      return formatBigInt(updatedUser);
+      if (
+        Array.isArray(dto.skills) &&
+        dto.skills.length > 0 &&
+        existedUser.role === Role.ROLE_REPAIRMAN
+      ) {
+        await this.prisma.repairmanSkill.deleteMany({
+          where: {
+            userId: existedUser.userId,
+          },
+        });
+
+        Promise.all(
+          dto.skills.map(
+            async (skillId: number) =>
+              await this.prisma.repairmanSkill.create({
+                data: {
+                  userId: existedUser.userId,
+                  skillId: skillId,
+                },
+              }),
+          ),
+        );
+      }
+      return UserResponseDto.formatDto(updatedUser);
     } catch (error) {
       console.log(error);
       throw error;
@@ -318,7 +381,7 @@ export class UserService implements OnModuleInit {
           accountName: account,
         },
       });
-      return formatBigInt(updatedUser);
+      return UserResponseDto.formatDto(updatedUser);
     } catch (error) {
       console.log(error);
       throw error;
