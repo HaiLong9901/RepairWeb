@@ -237,7 +237,7 @@ export class OrderService {
         ...pagination,
       });
 
-      return formatBigInt(orders);
+      return orders;
     } catch (error) {
       console.log(error);
       throw error;

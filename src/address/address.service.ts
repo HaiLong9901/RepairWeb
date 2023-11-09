@@ -1,21 +1,39 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import {
-  CreateAddressRequestDto,
-  UpdateAddressRequestDto,
-} from './dto/request.dto';
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { AddressRequestDto } from './dto/request.dto';
+import { Role } from 'src/enum/role';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AddressService {
   constructor(private prisma: PrismaService) {}
 
-  async createAdress(dto: CreateAddressRequestDto, userId: string) {
+  async createAdress(dto: AddressRequestDto, user: User) {
+    if (user.userId !== dto.userId && user.role !== Role.ROLE_ADMIN) {
+      return new ForbiddenException(
+        'You are not permitted to create this info',
+      );
+    }
     try {
+      const existedUser = this.prisma.user.findUnique({
+        where: {
+          userId: dto.userId,
+        },
+      });
+
+      if (!existedUser) {
+        return new NotFoundException('User is not found');
+      }
+
       const { isMainAddress } = dto;
       if (isMainAddress) {
         await this.prisma.userAddress.updateMany({
           where: {
-            userId,
+            userId: dto.userId,
           },
           data: {
             isMainAddress: false,
@@ -25,7 +43,6 @@ export class AddressService {
       await this.prisma.userAddress.create({
         data: {
           ...dto,
-          userId,
         },
       });
     } catch (error) {
@@ -34,12 +51,16 @@ export class AddressService {
     }
   }
 
-  async updateAddess(dto: UpdateAddressRequestDto, userId: string) {
+  async updateAddess(dto: AddressRequestDto, user: User) {
+    if (user.userId !== dto.userId && user.role !== Role.ROLE_ADMIN) {
+      return new ForbiddenException(
+        'You are not permitted to create this info',
+      );
+    }
     try {
       const existedAddress = await this.prisma.userAddress.findUnique({
         where: {
           addressId: dto.addressId,
-          userId,
         },
       });
 
@@ -50,14 +71,14 @@ export class AddressService {
       if (isMainAddress) {
         await this.prisma.userAddress.updateMany({
           where: {
-            userId,
+            userId: dto.userId,
           },
           data: {
             isMainAddress: false,
           },
         });
       }
-      await this.prisma.userAddress.update({
+      const updatedAddress = await this.prisma.userAddress.update({
         data: {
           ...dto,
         },
@@ -65,6 +86,8 @@ export class AddressService {
           addressId: dto.addressId,
         },
       });
+
+      return updatedAddress;
     } catch (error) {
       console.log(error);
       throw error;
@@ -88,6 +111,36 @@ export class AddressService {
           addressId,
         },
       });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async getAllUserAddress(requestedUserId: string, user: User) {
+    const { userId, role } = user;
+
+    if (userId !== requestedUserId && role !== Role.ROLE_ADMIN) {
+      return new ForbiddenException('You are not permit to change this asset');
+    }
+    try {
+      const existedUser = await this.prisma.user.findUnique({
+        where: {
+          userId: requestedUserId,
+        },
+      });
+
+      if (!existedUser) {
+        throw new NotFoundException('User is not found');
+      }
+
+      const addressList = await this.prisma.userAddress.findMany({
+        where: {
+          userId: requestedUserId,
+        },
+      });
+
+      return addressList;
     } catch (error) {
       console.log(error);
       throw error;
