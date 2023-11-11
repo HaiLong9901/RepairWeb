@@ -12,6 +12,7 @@ import {
 export class CreateUserReqestDto {
   @ApiProperty()
   @IsString()
+  @IsOptional()
   userId?: string;
 
   @ApiProperty()

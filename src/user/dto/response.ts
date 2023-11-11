@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Skill, UserAddress } from '@prisma/client';
 
 export class UserResponseDto {
   @ApiProperty()
@@ -43,6 +44,9 @@ export class UserResponseDto {
   @ApiProperty()
   skills?: any;
 
+  @ApiProperty()
+  address?: string[];
+
   public static formatDto(user: any): UserResponseDto {
     return {
       userId: user.userId,
@@ -58,12 +62,13 @@ export class UserResponseDto {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       status: user.status,
-      skills: user?.repairmanSkill?.map((skill) => {
+      skills: user?.repairmanSkill?.map((skill: Skill) => {
         return {
           skillName: skill.name,
           skillId: skill.skillId,
         };
       }),
+      address: user?.address?.map((addr: UserAddress) => addr.address),
     };
   }
 }
