@@ -5,6 +5,10 @@ export class CreateSkillRequestDto {
   @ApiProperty()
   @IsString()
   name: string;
+
+  @ApiProperty()
+  @IsString()
+  image: string;
 }
 
 export class UpdateSkillRequestDto {
@@ -15,4 +19,8 @@ export class UpdateSkillRequestDto {
   @ApiProperty()
   @IsString()
   name: string;
+
+  @ApiProperty()
+  @IsString()
+  image: string;
 }

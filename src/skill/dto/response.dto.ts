@@ -8,6 +8,9 @@ export class SkillResponseDto {
   name: string;
 
   @ApiProperty()
+  image: string;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

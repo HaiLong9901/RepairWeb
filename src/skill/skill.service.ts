@@ -18,6 +18,7 @@ export class SkillService {
       const skill = await this.prisma.skill.create({
         data: {
           name: dto.name,
+          image: dto.image,
           isActive: true,
         },
       });
@@ -44,6 +45,7 @@ export class SkillService {
       const updateSkill = await this.prisma.skill.update({
         data: {
           name: dto.name,
+          image: dto.image,
         },
         where: {
           skillId: dto.skillId,
