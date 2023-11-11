@@ -106,7 +106,16 @@ export class UserService implements OnModuleInit {
         ];
       }
 
-      const users = await this.prisma.user.findMany(queryParams);
+      const users = await this.prisma.user.findMany({
+        ...queryParams,
+        include: {
+          repairmanSkill: {
+            include: {
+              skill: true,
+            },
+          },
+        },
+      });
       return users.map((user) => UserResponseDto.formatDto(user));
     } catch (error) {
       console.log(error);
