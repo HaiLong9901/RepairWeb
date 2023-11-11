@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { NotificationRequestDto } from './dto/request.dto';
+import { formatBigInt } from 'src/utils/formatResponse';
 
 @Injectable()
 export class NotificationService {
@@ -23,14 +24,14 @@ export class NotificationService {
 
   async getAllNotification(userId: string) {
     try {
-      const notification = await this.prisma.notification.findMany({
+      const notifications = await this.prisma.notification.findMany({
         where: {
           userId,
           isSeen: false,
         },
       });
 
-      return notification;
+      return notifications.map((notification) => formatBigInt(notification));
     } catch (error) {
       console.log(error);
       throw error;

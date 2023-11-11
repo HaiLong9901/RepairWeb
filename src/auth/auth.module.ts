@@ -11,5 +11,6 @@ import { CartModule } from 'src/cart/cart.module';
   imports: [JwtModule.register({}), OtpModule, MailModule, CartModule],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}
