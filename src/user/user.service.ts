@@ -50,6 +50,7 @@ export class UserService implements OnModuleInit {
               skill: true,
             },
           },
+          address: true,
         },
       });
 
