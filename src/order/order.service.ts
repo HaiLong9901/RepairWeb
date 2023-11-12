@@ -17,12 +17,16 @@ import { User } from '@prisma/client';
 import { Role } from 'src/enum/role';
 import { formatBigInt } from 'src/utils/formatResponse';
 import { NotificationService } from 'src/notification/notification.service';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OrderService {
   constructor(
     private prisma: PrismaService,
     private notificationService: NotificationService,
+    private jwtService: JwtService,
+    private config: ConfigService,
   ) {}
 
   async createOrder(dto: OrderRequestDto, userId: string) {
@@ -471,7 +475,7 @@ export class OrderService {
 
   async updateOrderStatus(orderId: number, status: number) {
     try {
-      await this.prisma.order.update({
+      const order = await this.prisma.order.update({
         where: {
           orderId,
         },
@@ -479,6 +483,67 @@ export class OrderService {
           status,
         },
       });
-    } catch (error) {}
+      return order;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async generateQrInfo(orderId: number, userId: string) {
+    try {
+      const existedOrder = await this.prisma.order.findUnique({
+        where: {
+          orderId,
+        },
+      });
+
+      if (!existedOrder) {
+        return new NotFoundException('Order is not found');
+      }
+
+      if (userId !== existedOrder.userId) {
+        return new ForbiddenException('You are not permitted to get this info');
+      }
+
+      if (existedOrder.status !== OrderStatus.ACCEPTED) {
+        return new ForbiddenException('Can not generate token for this order');
+      }
+
+      const payload = {
+        orderId,
+        repairmanId: existedOrder.repairmanId,
+      };
+      const secret = this.config.get('JWT_SECRET');
+      const orderDecoded = await this.jwtService.signAsync(payload, {
+        expiresIn: '1d',
+        secret: secret,
+      });
+
+      return orderDecoded;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async checkInOrder(repairmanId: string, token: string) {
+    try {
+      const payload: any = this.jwtService.decode(token);
+      if (repairmanId !== payload.repairmanId) {
+        return new ForbiddenException(
+          'You are not permitted to change this asset',
+        );
+      }
+
+      const order = await this.updateOrderStatus(
+        payload.orderId,
+        OrderStatus.CHECKEDIN,
+      );
+      return order;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }

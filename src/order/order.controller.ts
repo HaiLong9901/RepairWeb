@@ -104,4 +104,15 @@ export class OrderController {
     const user = req.user;
     return this.orderService.cancelOrder(user, dto);
   }
+
+  @Get('generateQrInfo/:orderId')
+  @ApiResponse({ type: String })
+  @UseGuards(CustomerGuard)
+  generateQrInfo(
+    @Param('orderId', ParseIntPipe) orderId: number,
+    @Req() req: any,
+  ) {
+    const { userId } = req.user;
+    return this.orderService.generateQrInfo(orderId, userId);
+  }
 }

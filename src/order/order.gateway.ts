@@ -7,11 +7,10 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { UserService } from 'src/user/user.service';
 import { OrderService } from './order.service';
-import { Logger } from '@nestjs/common';
-import { NotificationRequestDto } from 'src/notification/dto/request.dto';
-import { NotificationService } from 'src/notification/notification.service';
+import { Logger, UseGuards } from '@nestjs/common';
+import { RepairmanSocketGuard } from 'src/auth/guard/repairmanSocket.guard';
+import { User } from '@prisma/client';
 @WebSocketGateway(3006, {
   cors: {
     origin: '*',
@@ -23,11 +22,7 @@ export class OrderGateway
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('OrderGateWay');
   private Messages: string[] = [];
-  constructor(
-    private userService: UserService,
-    private orderService: OrderService,
-    private notificationService: NotificationService,
-  ) {}
+  constructor(private orderService: OrderService) {}
 
   afterInit(server: any) {
     this.logger.log(server, 'Init');
@@ -56,22 +51,33 @@ export class OrderGateway
     return payload;
   }
 
-  @SubscribeMessage('getAllMessages')
-  async getAllMessage(client: Socket) {
-    this.logger.log(this.Messages.join('\n'));
-    return this.Messages.join('\n');
+  @SubscribeMessage('getOrderDetail')
+  async getOrderDetail(client: Socket, orderId: number) {
+    const user: User = client.data;
+    try {
+      const order = await this.orderService.getOrderById(orderId, user);
+
+      this.server.sockets.emit(`orderInfo/:${orderId}`, order);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   @SubscribeMessage('repairmanCheckin')
-  async checkIn(client: Socket, payload: NotificationRequestDto) {
-    this.notificationService.createNotification(payload);
-    this.logger.log(
-      await this.notificationService.getAllNotification('CUS49876336'),
-    );
-    this.server.sockets.emit(
-      'notifications',
-      await this.notificationService.getAllNotification('CUS49876336'),
-    );
-    return payload;
+  @UseGuards(RepairmanSocketGuard)
+  async checkIn(client: Socket, payload: string) {
+    const repairman = client.data;
+    try {
+      const order: any = await this.orderService.checkInOrder(
+        repairman.userId,
+        payload,
+      );
+
+      this.server.sockets.emit(`orderInfo/:${order.orderId}`, order);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }
