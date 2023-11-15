@@ -147,6 +147,7 @@ export class AuthService {
         },
       });
 
+      delete user.password;
       return formatBigInt(user);
     } catch (error) {
       console.log(error);
