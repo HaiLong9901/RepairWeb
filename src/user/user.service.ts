@@ -159,9 +159,11 @@ export class UserService implements OnModuleInit {
       const account =
         generateVNeseAccName(dto.lastName + ' ' + dto.firstName) +
         userId.slice(7, userId.length);
+      const data = { ...dto };
+      delete data.skills;
       const user = await this.prisma.user.create({
         data: {
-          ...dto,
+          ...data,
           status: UserStatus.ACTIVE,
           accountName: account,
           userId,
@@ -171,13 +173,12 @@ export class UserService implements OnModuleInit {
           repairmanSkill: true,
         },
       });
-
       if (
         Array.isArray(dto.skills) &&
         dto.skills.length > 0 &&
         dto.role === Role.ROLE_REPAIRMAN
       ) {
-        Promise.all(
+        await Promise.all(
           dto.skills.map(
             async (skillId: number) =>
               await this.prisma.repairmanSkill.create({

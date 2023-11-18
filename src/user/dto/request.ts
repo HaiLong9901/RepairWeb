@@ -3,8 +3,8 @@ import {
   IsArray,
   IsBoolean,
   IsEmail,
+  IsNumber,
   IsOptional,
-  IsPositive,
   IsString,
   IsStrongPassword,
 } from 'class-validator';
@@ -17,6 +17,7 @@ export class CreateUserReqestDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   accountName?: string;
 
   @ApiProperty()
@@ -24,6 +25,7 @@ export class CreateUserReqestDto {
   firstName: string;
 
   @ApiProperty()
+  @IsString()
   lastName: string;
 
   @ApiProperty()
@@ -44,10 +46,11 @@ export class CreateUserReqestDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   imageUrl?: string;
 
   @ApiProperty()
-  @IsPositive()
+  @IsNumber()
   role: number;
 
   @ApiProperty()
