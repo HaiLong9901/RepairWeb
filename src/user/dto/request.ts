@@ -90,6 +90,7 @@ export class UpdateUserRequestDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   imageUrl?: string;
 
   @ApiProperty()
@@ -130,6 +131,7 @@ export class SelfUpdateUserDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   imageUrl?: string;
 
   @ApiProperty()
