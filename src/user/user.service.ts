@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -16,9 +17,10 @@ import {
 import { generateUserId } from 'src/utils/generateUserId';
 import { generateVNeseAccName } from 'src/utils/formatString';
 import * as argon from 'argon2';
-import { admin, customer, repairman } from './dto/mockdata';
+import { admin, customer, repairman, superAdmin } from './dto/mockdata';
 import { CartService } from 'src/cart/cart.service';
 import { UserResponseDto } from './dto/response';
+import { User } from '@prisma/client';
 @Injectable()
 export class UserService implements OnModuleInit {
   constructor(
@@ -27,11 +29,11 @@ export class UserService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // await this.prisma.cleanDb();
-    // await this.createUser(customer);
-    // await this.createUser(admin);
-    // await this.createUser(repairman);
-    // await this.cartService.createCart(user.userId);
+    this.prisma.cleanDb();
+    await this.createUser(customer);
+    await this.createUser(admin);
+    await this.createUser(repairman);
+    await this.createUser(superAdmin);
   }
 
   async getUserById(userId: string) {
@@ -288,13 +290,9 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async switchUserActiveStatus(userId: string, status: number) {
+  async switchUserActiveStatus(userId: string, user: User) {
     if (!userId || userId.length === 0) {
-      throw new ForbiddenException('Missing userId');
-    }
-
-    if (status !== UserStatus.INACTIVE && status !== UserStatus.ACTIVE) {
-      throw new ForbiddenException("User's status must be ACTIVE or INACTIVE");
+      throw new BadRequestException('Missing userId');
     }
 
     try {
@@ -308,12 +306,25 @@ export class UserService implements OnModuleInit {
         throw new NotFoundException('User is not found');
       }
 
+      if (
+        (existedUser.role === Role.ROLE_ADMIN &&
+          user.role !== Role.ROLE_SUPERADMIN) ||
+        existedUser.status === UserStatus.BUSY
+      ) {
+        throw new ForbiddenException(
+          'You are not permitted to update this information',
+        );
+      }
+
       await this.prisma.user.update({
         where: {
           userId,
         },
         data: {
-          status,
+          status:
+            existedUser.status === UserStatus.ACTIVE
+              ? UserStatus.INACTIVE
+              : UserStatus.ACTIVE,
         },
       });
 

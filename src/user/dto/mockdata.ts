@@ -33,3 +33,14 @@ export const repairman: CreateUserReqestDto = {
   role: Role.ROLE_REPAIRMAN,
   gender: true,
 };
+
+export const superAdmin: CreateUserReqestDto = {
+  firstName: 'Hồng',
+  lastName: 'Trần Thị',
+  password: 'Hust123456@',
+  phone: '0555888999',
+  email: 'hongtt@gmail.com',
+  dob: '07/08/1996',
+  role: Role.ROLE_SUPERADMIN,
+  gender: false,
+};
