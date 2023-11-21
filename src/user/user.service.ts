@@ -29,7 +29,7 @@ export class UserService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    this.prisma.cleanDb();
+    await this.prisma.cleanDb();
     await this.createUser(customer);
     await this.createUser(admin);
     await this.createUser(repairman);
@@ -316,7 +316,7 @@ export class UserService implements OnModuleInit {
         );
       }
 
-      await this.prisma.user.update({
+      const updatedUser = await this.prisma.user.update({
         where: {
           userId,
         },
@@ -326,9 +326,17 @@ export class UserService implements OnModuleInit {
               ? UserStatus.INACTIVE
               : UserStatus.ACTIVE,
         },
+        include: {
+          repairmanSkill: {
+            include: {
+              skill: true,
+            },
+          },
+          address: true,
+        },
       });
 
-      return { message: "switch user's account status successfully" };
+      return UserResponseDto.formatDto(updatedUser);
     } catch (error) {
       console.log(error);
       throw error;
@@ -343,16 +351,24 @@ export class UserService implements OnModuleInit {
     }
 
     try {
-      await this.prisma.user.update({
+      const updatedUser = await this.prisma.user.update({
         where: {
           userId,
         },
         data: {
           status,
         },
+        include: {
+          repairmanSkill: {
+            include: {
+              skill: true,
+            },
+          },
+          address: true,
+        },
       });
 
-      return { message: 'Update status successfully' };
+      return UserResponseDto.formatDto(updatedUser);
     } catch (error) {
       console.log(error);
       throw error;

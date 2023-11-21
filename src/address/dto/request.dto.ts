@@ -10,6 +10,7 @@ import {
 export class AddressRequestDto {
   @ApiProperty()
   @IsPositive()
+  @IsOptional()
   addressId: number;
 
   @ApiProperty()

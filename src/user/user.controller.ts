@@ -68,7 +68,7 @@ export class UserController {
 
   @Patch('updateRepairmanStatus')
   @UseGuards(RepairmanGuard)
-  @ApiResponse({ type: SwitchUserStatusResponseDto })
+  @ApiResponse({ type: UserResponseDto })
   updateRepairmanStatus(@Body() status: number, @Req() req) {
     const { userId } = req.user;
     return this.userService.updateRepairmanStatus(userId, status);
@@ -76,7 +76,7 @@ export class UserController {
 
   @Patch('changePassword')
   @UseGuards(JwtGuard)
-  @ApiResponse({ type: SwitchUserStatusResponseDto })
+  @ApiResponse({ type: UserResponseDto })
   changePassword(@Body() dto: ChangePasswordDto, @Req() req) {
     console.log(req.user);
     const { userId } = req.user;
