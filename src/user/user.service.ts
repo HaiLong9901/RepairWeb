@@ -89,7 +89,6 @@ export class UserService implements OnModuleInit {
       if (status) {
         queryParams.where.status = parseInt(status);
       } else {
-        queryParams.where.status = { not: UserStatus.INACTIVE };
       }
 
       if (name && name.length > 0) {
