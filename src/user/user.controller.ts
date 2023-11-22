@@ -62,7 +62,7 @@ export class UserController {
   @UseGuards(AdminGuard)
   @ApiResponse({ type: SwitchUserStatusResponseDto })
   switchUserActiveStatus(@Param('userId') userId: string, @Req() req) {
-    const { user } = req.user;
+    const user = req.user;
     return this.userService.switchUserActiveStatus(userId, user);
   }
 

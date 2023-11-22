@@ -6,8 +6,8 @@ export class AdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const { user } = context.switchToHttp().getRequest();
     return (
-      user &&
-      (user.role === Role.ROLE_ADMIN || user.role === Role.ROLE_SUPERADMIN)
+      (user && user.role === Role.ROLE_ADMIN) ||
+      user.role === Role.ROLE_SUPERADMIN
     );
   }
 }
