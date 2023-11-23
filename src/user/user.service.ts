@@ -29,11 +29,11 @@ export class UserService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.prisma.cleanDb();
-    await this.createUser(customer);
-    await this.createUser(admin);
-    await this.createUser(repairman);
-    await this.createUser(superAdmin);
+    // await this.prisma.cleanDb();
+    // await this.createUser(customer);
+    // await this.createUser(admin);
+    // await this.createUser(repairman);
+    // await this.createUser(superAdmin);
   }
 
   async getUserById(userId: string) {

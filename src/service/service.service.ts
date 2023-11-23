@@ -38,17 +38,21 @@ export class ServiceService {
           serviceId: dto.serviceId,
         },
       });
-
+      console.log({ existedService });
       if (!existedService) {
         throw new NotFoundException('Dịch vụ không tồn tại');
       }
-      delete dto.serviceId;
       const service = await this.prisma.service.update({
         data: {
-          ...dto,
+          name: dto.name,
+          image: dto.image,
+          price: dto.price,
+          type: dto.type,
+          rate: dto.rate,
+          desc: dto.desc,
         },
         where: {
-          serviceId: existedService.serviceId,
+          serviceId: dto.serviceId,
         },
       });
 

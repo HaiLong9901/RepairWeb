@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsPositive, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
 
 export class CreateServiceRequestDto {
   @ApiProperty()
@@ -41,9 +41,11 @@ export class UpdateServiceRequestDto {
   type: number;
 
   @ApiProperty()
+  @IsNumber()
   price: number;
 
   @ApiProperty()
+  @IsNumber()
   rate: number;
 
   @ApiProperty()
