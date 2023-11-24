@@ -20,8 +20,9 @@ export class CartItemResponseDto {
       isChoosen: cartItem.isChoosen.toString(),
       cartId: cartItem.cartId.toString(),
       service: {
+        serviceId: service.serviceId,
         name: service.name,
-        price: service.price,
+        price: service.price.toString(),
       },
     };
 
