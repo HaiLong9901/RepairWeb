@@ -105,7 +105,7 @@ export class ReviewService {
     }
   }
 
-  async getReviewsByServiceId(serviceId) {
+  async getReviewsByServiceId(serviceId: number) {
     try {
       const reviews = await this.prisma.review.findMany({
         where: {

@@ -8,6 +8,7 @@ import {
   Req,
   Patch,
   Delete,
+  Body,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -30,7 +31,7 @@ export class ReviewController {
   @Post('createReview')
   @UseGuards(JwtGuard, CustomerGuard)
   @ApiResponse({ type: CreateReviewResponseDto })
-  createReview(dto: CreateReviewRequestDto, @Req() req) {
+  createReview(@Body() dto: CreateReviewRequestDto, @Req() req) {
     const { userId } = req.user;
     return this.reviewService.createReview(dto, userId);
   }
