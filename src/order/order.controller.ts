@@ -40,8 +40,8 @@ export class OrderController {
   @ApiQuery({ name: 'to', required: false })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'repairmanId', required: false })
-  @ApiQuery({ name: 'page', required: true })
-  @ApiQuery({ name: 'limit', required: true })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
   getAllOrders(@Query() query) {
     return this.orderService.getAllOrder(query);
   }
