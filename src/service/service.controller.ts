@@ -20,6 +20,7 @@ import {
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { StaffGuard } from 'src/auth/guard/staff.guard';
 
 @Controller('service')
 @ApiTags('Service')
@@ -28,21 +29,21 @@ export class ServiceController {
 
   @Get('getAll')
   @ApiResponse({ type: ServiceResponseDto, isArray: true })
-  async getAllService() {
+  getAllService() {
     return this.serviceService.getAllService();
   }
 
   @Get(':id')
   @ApiResponse({ type: ServiceResponseDto })
-  async getServiceById(@Param('id', ParseIntPipe) id: number) {
+  getServiceById(@Param('id', ParseIntPipe) id: number) {
     return this.serviceService.getServiceById(id);
   }
 
   @Post('createService')
-  @UseGuards(JwtGuard, AdminGuard)
+  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
   @UseInterceptors(FileInterceptor('image'))
   @ApiResponse({ type: ServiceResponseDto })
-  async createService(
+  createService(
     @Body() dto: CreateServiceRequestDto,
     @UploadedFile() image: Express.Multer.File,
   ) {
@@ -61,34 +62,41 @@ export class ServiceController {
   // }
 
   @Patch('updateService')
-  @UseGuards(JwtGuard, AdminGuard)
+  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
   @ApiResponse({ type: ServiceResponseDto })
-  async updateService(@Body() dto: UpdateServiceRequestDto) {
+  updateService(@Body() dto: UpdateServiceRequestDto) {
     return this.serviceService.updateService(dto);
   }
 
   @Patch('delete/:id')
   @UseGuards(JwtGuard, AdminGuard)
   @ApiResponse({ status: 200 })
-  async toggleServiceActive(@Param('id') sericeId: string) {
+  toggleServiceActive(@Param('id') sericeId: string) {
     return this.serviceService.toggleServiceActive(parseInt(sericeId));
   }
 
   @Get('getServiceByName/:keyword')
   @ApiResponse({ type: ServiceResponseDto, isArray: true })
-  async getServiceByName(@Param('keyword') keyword: string) {
+  getServiceByName(@Param('keyword') keyword: string) {
     return this.serviceService.getServiceByName(keyword);
   }
 
   @Get('getServiceByType/:type')
   @ApiResponse({ type: ServiceResponseDto, isArray: true })
-  async getAllServiceByType(@Param('type', ParseIntPipe) type: number) {
+  getAllServiceByType(@Param('type', ParseIntPipe) type: number) {
     return this.serviceService.getServiceByType(type);
   }
 
   @Get('getServiceBySkill/:skillId')
   @ApiResponse({ type: ServiceResponseDto, isArray: true })
-  async getAllServiceBySkill(@Param('skillId', ParseIntPipe) skillId: number) {
+  getAllServiceBySkill(@Param('skillId', ParseIntPipe) skillId: number) {
     return this.serviceService.getServiceBySkill(skillId);
+  }
+
+  @Post('createMultiServices')
+  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  @ApiResponse({ status: 200 })
+  createMultiServices(@Body() dto: CreateServiceRequestDto[]) {
+    return this.serviceService.createMultiServices(dto);
   }
 }

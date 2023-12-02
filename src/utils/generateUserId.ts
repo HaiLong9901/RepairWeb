@@ -5,8 +5,10 @@ export const generateUserId = (phone: string, role: number) => {
   const prev =
     role === Role.ROLE_USER
       ? 'CUS'
-      : role === Role.ROLE_ADMIN || role === Role.ROLE_SUPERADMIN
+      : role === Role.ROLE_ADMIN
       ? 'ADM'
+      : role === Role.ROLE_STAFF
+      ? 'STA'
       : 'REP';
   const id =
     prev +

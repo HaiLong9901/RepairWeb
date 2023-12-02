@@ -17,7 +17,7 @@ import {
 import { generateUserId } from 'src/utils/generateUserId';
 import { generateVNeseAccName } from 'src/utils/formatString';
 import * as argon from 'argon2';
-import { admin, customer, repairman, superAdmin } from './dto/mockdata';
+import { admin, customer, repairman, staff } from './dto/mockdata';
 import { CartService } from 'src/cart/cart.service';
 import { UserResponseDto } from './dto/response';
 import { User } from '@prisma/client';
@@ -125,8 +125,11 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async createUser(dto: CreateUserReqestDto) {
+  async createUser(dto: CreateUserReqestDto, user: User) {
     const { email, phone, role } = dto;
+    if (role === Role.ROLE_ADMIN && user.role !== Role.ROLE_ADMIN) {
+      throw new ForbiddenException('Not permitted');
+    }
     if (!(role in Role)) {
       throw new NotFoundException('Role is not found');
     }
@@ -306,8 +309,9 @@ export class UserService implements OnModuleInit {
       }
 
       if (
-        (existedUser.role === Role.ROLE_ADMIN &&
-          user.role !== Role.ROLE_SUPERADMIN) ||
+        ((existedUser.role === Role.ROLE_ADMIN ||
+          existedUser.role === Role.ROLE_STAFF) &&
+          user.role !== Role.ROLE_ADMIN) ||
         existedUser.status === UserStatus.BUSY
       ) {
         throw new ForbiddenException(
@@ -423,5 +427,39 @@ export class UserService implements OnModuleInit {
       console.log(error);
       throw error;
     }
+  }
+
+  async createMultiUsers(dto: CreateUserReqestDto[], user: User) {
+    const hasAdminRole = dto.some((user) => user.role === Role.ROLE_ADMIN);
+    if (hasAdminRole && user.role !== Role.ROLE_ADMIN) {
+      throw new ForbiddenException("You're not permitted");
+    }
+    try {
+      const userList: any = await Promise.all(
+        dto.map(async (user) => {
+          const hashPassword = await argon.hash(user.password);
+          const userId = generateUserId(user.phone, user.role);
+          const account =
+            generateVNeseAccName(user.lastName + ' ' + user.firstName) +
+            userId.slice(7, userId.length);
+          const userToCreate: CreateUserReqestDto = {
+            ...user,
+            accountName: account,
+            password: hashPassword,
+            userId,
+          };
+
+          return userToCreate;
+        }),
+      );
+
+      await this.prisma.user.createMany({
+        data: userList,
+      });
+
+      return {
+        message: 'success',
+      };
+    } catch (error) {}
   }
 }

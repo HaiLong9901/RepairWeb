@@ -14,6 +14,7 @@ import { MalfunctionResponseDto } from './dto/response.dto';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { MalfunctionRequestDto } from './dto/request.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
+import { StaffGuard } from 'src/auth/guard/staff.guard';
 
 @Controller('malfunction')
 @ApiTags('Malfunction')
@@ -36,15 +37,22 @@ export class MalfunctionController {
 
   @Post('createMalfunction')
   @ApiResponse({ type: MalfunctionResponseDto })
-  @UseGuards(JwtGuard, AdminGuard)
+  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
   createMalfunction(@Body() dto: MalfunctionRequestDto) {
     return this.malfunctionService.createMalfunction(dto);
   }
 
   @Patch('updateMalfunction')
   @ApiResponse({ type: MalfunctionResponseDto })
-  @UseGuards(JwtGuard, AdminGuard)
+  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
   updateMalfunction(dto: MalfunctionRequestDto) {
     return this.malfunctionService.updateMalfunction(dto);
+  }
+
+  @Post('createMultiMalfunction')
+  @ApiResponse({ status: 200 })
+  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  createMultiMalfunction(@Body() dto: MalfunctionRequestDto[]) {
+    return this.malfunctionService.createMultiMalfunction(dto);
   }
 }

@@ -21,6 +21,7 @@ import {
   UpdateUserRequestDto,
 } from './dto/request';
 import { RepairmanGuard } from 'src/auth/guard/repairman.guard';
+import { StaffGuard } from 'src/auth/guard/staff.guard';
 
 @Controller('user')
 @ApiTags('User')
@@ -29,7 +30,7 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get('getAll')
-  @UseGuards(AdminGuard)
+  @UseGuards(AdminGuard, StaffGuard)
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'role', required: false })
   @ApiQuery({ name: 'name', required: false })
@@ -45,21 +46,22 @@ export class UserController {
   }
 
   @Post('createUser')
-  @UseGuards(AdminGuard)
+  @UseGuards(AdminGuard, StaffGuard)
   @ApiResponse({ type: UserResponseDto })
-  createUser(@Body() dto: CreateUserReqestDto) {
-    return this.userService.createUser(dto);
+  createUser(@Body() dto: CreateUserReqestDto, @Req() req) {
+    const user = req.user;
+    return this.userService.createUser(dto, user);
   }
 
   @Patch('updateUser')
-  @UseGuards(AdminGuard)
+  @UseGuards(AdminGuard, StaffGuard)
   @ApiResponse({ type: UserResponseDto })
   updateUser(@Body() dto: UpdateUserRequestDto) {
     return this.userService.updateUser(dto);
   }
 
   @Patch('switchUserActiveStatus/:userId')
-  @UseGuards(AdminGuard)
+  @UseGuards(AdminGuard, StaffGuard)
   @ApiResponse({ type: SwitchUserStatusResponseDto })
   switchUserActiveStatus(@Param('userId') userId: string, @Req() req) {
     const user = req.user;
@@ -89,5 +91,13 @@ export class UserController {
   selfUpdateProfile(@Body() dto: SelfUpdateUserDto, @Req() req) {
     const { userId } = req.user;
     return this.userService.selfUpdateProfile(userId, dto);
+  }
+
+  @Post('createMultiUser')
+  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  @ApiResponse({ status: 200 })
+  createMultiUsers(@Body() dto: CreateUserReqestDto[], @Req() req) {
+    const user = req.user;
+    return this.userService.createMultiUsers(dto, user);
   }
 }

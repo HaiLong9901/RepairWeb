@@ -12,14 +12,14 @@ export const customer: CreateUserReqestDto = {
   gender: true,
 };
 
-export const admin: CreateUserReqestDto = {
+export const staff: CreateUserReqestDto = {
   firstName: 'Yến',
   lastName: 'Nguyễn Hải',
   password: 'Hust123456@',
   phone: '0123666585',
   email: 'yennh@gmail.com',
   dob: '09/03/1999',
-  role: Role.ROLE_ADMIN,
+  role: Role.ROLE_STAFF,
   gender: false,
 };
 
@@ -34,13 +34,13 @@ export const repairman: CreateUserReqestDto = {
   gender: true,
 };
 
-export const superAdmin: CreateUserReqestDto = {
+export const admin: CreateUserReqestDto = {
   firstName: 'Hồng',
   lastName: 'Trần Thị',
   password: 'Hust123456@',
   phone: '0555888999',
   email: 'hongtt@gmail.com',
   dob: '07/08/1996',
-  role: Role.ROLE_SUPERADMIN,
+  role: Role.ROLE_ADMIN,
   gender: false,
 };

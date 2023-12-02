@@ -92,4 +92,18 @@ export class MalfunctionService {
       throw error;
     }
   }
+
+  async createMultiMalfunction(dto: MalfunctionRequestDto[]) {
+    try {
+      await this.prisma.malfunctionCategory.createMany({
+        data: dto,
+      });
+      return {
+        message: 'success',
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 }

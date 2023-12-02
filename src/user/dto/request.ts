@@ -61,6 +61,11 @@ export class CreateUserReqestDto {
   @IsArray()
   @IsOptional()
   skills?: number[];
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  status?: number;
 }
 
 export class UpdateUserRequestDto {

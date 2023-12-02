@@ -9,6 +9,7 @@ import {
   Patch,
   ParseIntPipe,
   Body,
+  NotFoundException,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
@@ -27,6 +28,7 @@ import {
 import { CustomerGuard } from 'src/auth/guard/customer.guard';
 import { RepairmanGuard } from 'src/auth/guard/repairman.guard';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
+import { StaffGuard } from 'src/auth/guard/staff.guard';
 
 @Controller('order')
 @ApiTags('Order')
@@ -99,7 +101,7 @@ export class OrderController {
 
   @Patch('cancelOrder')
   @ApiResponse({ status: 204 })
-  @UseGuards(CustomerGuard, AdminGuard)
+  @UseGuards(CustomerGuard, AdminGuard, StaffGuard)
   cancelOrder(@Req() req, dto: CancelOrderRequestDto) {
     const user = req.user;
     return this.orderService.cancelOrder(user, dto);
@@ -114,5 +116,16 @@ export class OrderController {
   ) {
     const { userId } = req.user;
     return this.orderService.generateQrInfo(orderId, userId);
+  }
+
+  @Patch('assignOrder')
+  @ApiResponse({ status: 204 })
+  @ApiQuery({ name: 'orderId', required: true })
+  @ApiQuery({ name: 'repairmanId', required: true })
+  assignOrder(@Query() query) {
+    const { orderId, repairmanId } = query;
+    const convertedOrderId = parseInt(orderId);
+    if (!orderId) throw new NotFoundException('OrderId is not valid');
+    return this.orderService.assignOrder(convertedOrderId, repairmanId);
   }
 }

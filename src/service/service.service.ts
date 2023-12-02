@@ -11,7 +11,6 @@ export class ServiceService {
   constructor(private prisma: PrismaService) {}
 
   async createService(dto: CreateServiceRequestDto) {
-    console.log({ dto });
     try {
       const existedSkill = await this.prisma.skill.findUnique({
         where: {
@@ -38,7 +37,6 @@ export class ServiceService {
           serviceId: dto.serviceId,
         },
       });
-      console.log({ existedService });
       if (!existedService) {
         throw new NotFoundException('Dịch vụ không tồn tại');
       }
@@ -205,6 +203,20 @@ export class ServiceService {
       });
 
       return services.map((value) => formatBigInt(value));
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async createMultiServices(services: CreateServiceRequestDto[]) {
+    try {
+      await this.prisma.service.createMany({
+        data: services,
+      });
+      return {
+        message: 'success',
+      };
     } catch (error) {
       console.log(error);
       throw error;
