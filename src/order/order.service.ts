@@ -19,6 +19,7 @@ import { formatBigInt } from 'src/utils/formatResponse';
 import { NotificationService } from 'src/notification/notification.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { OrderReponseDto } from './dto/response.dto';
 
 @Injectable()
 export class OrderService {
@@ -31,11 +32,12 @@ export class OrderService {
 
   async createOrder(dto: OrderRequestDto, userId: string) {
     try {
+      console.log({ dto });
       const order = await this.prisma.order.create({
         data: {
           userId: userId,
           code: userId.slice(3, 10) + Date.now(),
-          expectDate: dto.expectDate,
+          expectDate: dto.expectedDate,
           status: OrderStatus.PENDING,
           addressId: dto.addressId,
         },
@@ -232,7 +234,7 @@ export class OrderService {
           },
           repairman: true,
           user: true,
-          components: true,
+          // components: true,
           address: true,
         },
         orderBy: {
@@ -241,7 +243,7 @@ export class OrderService {
         ...pagination,
       });
 
-      return orders;
+      return orders.map((order) => OrderReponseDto.formatDto(order));
     } catch (error) {
       console.log(error);
       throw error;

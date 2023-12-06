@@ -15,6 +15,18 @@ export class OrderDetailReponseDto {
 
   @ApiProperty()
   media: OrderMediaReponseDto[];
+
+  public static formatDto = (dto: OrderDetailReponseDto) => {
+    return {
+      orderDetailId: dto.orderDetailId.toString(),
+      orderId: dto.orderId.toString(),
+      serviceId: dto.serviceId,
+      desc: dto.desc,
+      media: dto.media.map((val: OrderMediaReponseDto) =>
+        OrderMediaReponseDto.formatDto(val),
+      ),
+    };
+  };
 }
 
 export class OrderMediaReponseDto {
@@ -32,6 +44,16 @@ export class OrderMediaReponseDto {
 
   @ApiProperty()
   alt?: string;
+
+  public static formatDto = (dto: OrderMediaReponseDto) => {
+    return {
+      orderMediaId: dto.orderMediaId.toString(),
+      orderDetailId: dto.orderDetailId.toString(),
+      mediaType: dto.mediaType,
+      url: dto.url,
+      alt: dto.alt,
+    };
+  };
 }
 
 export class OrderReponseDto {
@@ -45,7 +67,7 @@ export class OrderReponseDto {
   status: number;
 
   @ApiProperty()
-  expectDate: string;
+  expectedDate: string;
 
   @ApiProperty()
   repairmanId?: string;
@@ -60,7 +82,23 @@ export class OrderReponseDto {
   incurredCostReason: string;
 
   @ApiProperty()
-  orderDetail?: OrderDetailReponseDto[];
+  orderDetails?: OrderDetailReponseDto[];
+
+  public static formatDto = (dto: any) => {
+    return {
+      orderId: dto.orderId.toString(),
+      code: dto.code,
+      status: dto.status,
+      expectedDate: dto.expectedDate,
+      repairmanId: dto.repairmanId,
+      addressId: dto.addressId,
+      incurredCost: dto.incurredCost,
+      incurredCostReason: dto.incurredCostReason,
+      orderDetails: dto.orderDetails.map((detail) =>
+        OrderDetailReponseDto.formatDto(detail),
+      ),
+    };
+  };
 }
 
 export class DiagnosisResponseDto {

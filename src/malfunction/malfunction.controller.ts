@@ -11,7 +11,6 @@ import {
 import { MalfunctionService } from './malfunction.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MalfunctionResponseDto } from './dto/response.dto';
-import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { MalfunctionRequestDto } from './dto/request.dto';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { StaffGuard } from 'src/auth/guard/staff.guard';
@@ -37,21 +36,21 @@ export class MalfunctionController {
 
   @Post('createMalfunction')
   @ApiResponse({ type: MalfunctionResponseDto })
-  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  @UseGuards(JwtGuard, StaffGuard)
   createMalfunction(@Body() dto: MalfunctionRequestDto) {
     return this.malfunctionService.createMalfunction(dto);
   }
 
   @Patch('updateMalfunction')
   @ApiResponse({ type: MalfunctionResponseDto })
-  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  @UseGuards(JwtGuard, StaffGuard)
   updateMalfunction(dto: MalfunctionRequestDto) {
     return this.malfunctionService.updateMalfunction(dto);
   }
 
   @Post('createMultiMalfunction')
   @ApiResponse({ status: 200 })
-  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  @UseGuards(JwtGuard, StaffGuard)
   createMultiMalfunction(@Body() dto: MalfunctionRequestDto[]) {
     return this.malfunctionService.createMultiMalfunction(dto);
   }

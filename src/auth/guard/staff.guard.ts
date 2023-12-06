@@ -5,6 +5,8 @@ import { Role } from 'src/enum/role';
 export class StaffGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const { user } = context.switchToHttp().getRequest();
-    return user && user.role === Role.ROLE_STAFF;
+    return (
+      user && (user.role === Role.ROLE_ADMIN || user.role === Role.ROLE_STAFF)
+    );
   }
 }

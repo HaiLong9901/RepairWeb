@@ -27,7 +27,6 @@ import {
 } from './dto/request.dto';
 import { CustomerGuard } from 'src/auth/guard/customer.guard';
 import { RepairmanGuard } from 'src/auth/guard/repairman.guard';
-import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { StaffGuard } from 'src/auth/guard/staff.guard';
 
 @Controller('order')
@@ -101,7 +100,7 @@ export class OrderController {
 
   @Patch('cancelOrder')
   @ApiResponse({ status: 204 })
-  @UseGuards(CustomerGuard, AdminGuard, StaffGuard)
+  @UseGuards(CustomerGuard, StaffGuard)
   cancelOrder(@Req() req, dto: CancelOrderRequestDto) {
     const user = req.user;
     return this.orderService.cancelOrder(user, dto);

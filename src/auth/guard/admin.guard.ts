@@ -5,6 +5,7 @@ import { Role } from 'src/enum/role';
 export class AdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const { user } = context.switchToHttp().getRequest();
+    console.log({ user });
     return user && user.role === Role.ROLE_ADMIN;
   }
 }

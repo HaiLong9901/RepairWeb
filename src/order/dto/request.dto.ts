@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsNumber,
   IsOptional,
@@ -53,19 +54,22 @@ export class OrderMediaRequestDto {
 export class OrderRequestDto {
   @ApiProperty()
   @IsPositive()
-  orderId: number;
+  @IsOptional()
+  orderId?: number;
 
   @ApiProperty()
   @IsString()
-  code: string;
+  @IsOptional()
+  code?: string;
 
   @ApiProperty()
   @IsPositive()
+  @IsOptional()
   status: number;
 
   @ApiProperty()
   @IsString()
-  expectDate: string;
+  expectedDate: string;
 
   @ApiProperty()
   @IsString()
@@ -87,6 +91,7 @@ export class OrderRequestDto {
   incurredCostReason: string;
 
   @ApiProperty()
+  @IsArray()
   orderDetail?: DetailOrderRequestDto[];
 }
 

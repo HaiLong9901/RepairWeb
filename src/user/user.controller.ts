@@ -13,7 +13,6 @@ import { UserService } from './user.service';
 import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SwitchUserStatusResponseDto, UserResponseDto } from './dto/response';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
-import { AdminGuard } from 'src/auth/guard/admin.guard';
 import {
   ChangePasswordDto,
   CreateUserReqestDto,
@@ -30,7 +29,7 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get('getAll')
-  @UseGuards(AdminGuard, StaffGuard)
+  @UseGuards(StaffGuard)
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'role', required: false })
   @ApiQuery({ name: 'name', required: false })
@@ -46,7 +45,7 @@ export class UserController {
   }
 
   @Post('createUser')
-  @UseGuards(AdminGuard, StaffGuard)
+  @UseGuards(StaffGuard)
   @ApiResponse({ type: UserResponseDto })
   createUser(@Body() dto: CreateUserReqestDto, @Req() req) {
     const user = req.user;
@@ -54,14 +53,14 @@ export class UserController {
   }
 
   @Patch('updateUser')
-  @UseGuards(AdminGuard, StaffGuard)
+  @UseGuards(StaffGuard)
   @ApiResponse({ type: UserResponseDto })
   updateUser(@Body() dto: UpdateUserRequestDto) {
     return this.userService.updateUser(dto);
   }
 
   @Patch('switchUserActiveStatus/:userId')
-  @UseGuards(AdminGuard, StaffGuard)
+  @UseGuards(StaffGuard)
   @ApiResponse({ type: SwitchUserStatusResponseDto })
   switchUserActiveStatus(@Param('userId') userId: string, @Req() req) {
     const user = req.user;
@@ -94,7 +93,7 @@ export class UserController {
   }
 
   @Post('createMultiUser')
-  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  @UseGuards(JwtGuard, StaffGuard)
   @ApiResponse({ status: 200 })
   createMultiUsers(@Body() dto: CreateUserReqestDto[], @Req() req) {
     const user = req.user;

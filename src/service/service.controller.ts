@@ -40,7 +40,7 @@ export class ServiceController {
   }
 
   @Post('createService')
-  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  @UseGuards(JwtGuard, StaffGuard)
   @UseInterceptors(FileInterceptor('image'))
   @ApiResponse({ type: ServiceResponseDto })
   createService(
@@ -62,7 +62,7 @@ export class ServiceController {
   // }
 
   @Patch('updateService')
-  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  @UseGuards(JwtGuard, StaffGuard)
   @ApiResponse({ type: ServiceResponseDto })
   updateService(@Body() dto: UpdateServiceRequestDto) {
     return this.serviceService.updateService(dto);
@@ -94,7 +94,7 @@ export class ServiceController {
   }
 
   @Post('createMultiServices')
-  @UseGuards(JwtGuard, AdminGuard, StaffGuard)
+  @UseGuards(JwtGuard, StaffGuard)
   @ApiResponse({ status: 200 })
   createMultiServices(@Body() dto: CreateServiceRequestDto[]) {
     return this.serviceService.createMultiServices(dto);
