@@ -162,7 +162,7 @@ export class OrderService {
         );
       }
 
-      return formatBigInt(order);
+      return OrderReponseDto.formatDto(order);
     } catch (error) {
       console.log(error);
       throw error;
