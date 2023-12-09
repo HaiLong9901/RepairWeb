@@ -23,7 +23,8 @@ export class DetailOrderRequestDto {
 
   @ApiProperty()
   @IsString()
-  desc: string;
+  @IsOptional()
+  desc?: string;
 
   @ApiProperty()
   media: OrderMediaRequestDto[];

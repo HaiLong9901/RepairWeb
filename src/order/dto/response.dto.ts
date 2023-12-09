@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Service } from '@prisma/client';
+import { formatBigInt } from 'src/utils/formatResponse';
 
 export class OrderDetailReponseDto {
   @ApiProperty()
@@ -16,15 +18,20 @@ export class OrderDetailReponseDto {
   @ApiProperty()
   media: OrderMediaReponseDto[];
 
+  @ApiProperty()
+  service: Service;
   public static formatDto = (dto: OrderDetailReponseDto) => {
     return {
       orderDetailId: dto.orderDetailId.toString(),
       orderId: dto.orderId.toString(),
       serviceId: dto.serviceId,
       desc: dto.desc,
-      media: dto.media.map((val: OrderMediaReponseDto) =>
-        OrderMediaReponseDto.formatDto(val),
-      ),
+      media: dto.media
+        ? dto.media.map((val: OrderMediaReponseDto) =>
+            OrderMediaReponseDto.formatDto(val),
+          )
+        : [],
+      service: formatBigInt(dto.service),
     };
   };
 }
@@ -84,6 +91,12 @@ export class OrderReponseDto {
   @ApiProperty()
   orderDetails?: OrderDetailReponseDto[];
 
+  @ApiProperty()
+  updatedAt?: string;
+
+  @ApiProperty()
+  createdAt?: string;
+
   public static formatDto = (dto: any) => {
     return {
       orderId: dto.orderId.toString(),
@@ -97,6 +110,8 @@ export class OrderReponseDto {
       orderDetails: dto.orderDetails.map((detail) =>
         OrderDetailReponseDto.formatDto(detail),
       ),
+      updatedAt: dto.updatedAt,
+      createdAt: dto.createdAt,
     };
   };
 }

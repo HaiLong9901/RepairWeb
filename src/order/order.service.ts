@@ -252,6 +252,7 @@ export class OrderService {
 
   async getOrdersByUserId(user: User, query: any, orderUserId: string) {
     const { userId, role } = user;
+    console.log({ userId, orderUserId });
     const { status } = query;
     if (userId !== orderUserId && role === Role.ROLE_USER) {
       throw new ForbiddenException(
@@ -260,11 +261,24 @@ export class OrderService {
     }
     try {
       let orders = [];
-      if (status) {
+      console.log({ userId, status });
+      if (status.length > 0) {
         orders = await this.prisma.order.findMany({
           where: {
-            userId,
-            status,
+            userId: orderUserId,
+            status: parseInt(status),
+          },
+          include: {
+            orderDetails: {
+              include: {
+                service: true,
+              },
+            },
+            repairman: true,
+            user: true,
+          },
+          orderBy: {
+            updatedAt: 'desc',
           },
         });
       } else {
@@ -275,21 +289,18 @@ export class OrderService {
           include: {
             orderDetails: {
               include: {
-                media: true,
                 service: true,
-                diagnosis: true,
               },
             },
             repairman: true,
             user: true,
-            components: true,
           },
           orderBy: {
             updatedAt: 'desc',
           },
         });
       }
-      return orders;
+      return orders.map((order) => OrderReponseDto.formatDto(order));
     } catch (error) {
       console.log(error);
       throw error;
