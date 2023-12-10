@@ -150,7 +150,7 @@ model Order {
   total              BigInt?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-  expectDate         String
+  expectedDate       String
   userId             String
   repairmanId        String?
   incurredCost       BigInt?

@@ -32,12 +32,11 @@ export class OrderService {
 
   async createOrder(dto: OrderRequestDto, userId: string) {
     try {
-      console.log({ dto });
       const order = await this.prisma.order.create({
         data: {
           userId: userId,
           code: userId.slice(3, 10) + Date.now(),
-          expectDate: dto.expectedDate,
+          expectedDate: dto.expectedDate,
           status: OrderStatus.PENDING,
           addressId: dto.addressId,
         },
@@ -71,26 +70,6 @@ export class OrderService {
             }),
         ),
       );
-
-      //   const orderDetailResponse = orderDetails.map(value => {
-      //     return {
-      //         orderDetailId: value.orderDetailId,
-      //         orderId: value.orderId,
-      //         serviceId: value.serviceId,
-      //         desc: value.desc,
-      //         media: media.filter(val => )
-      //     }
-      //   })
-
-      //   const response: OrderRequestDto = {
-      //     orderId: parseInt(order.orderId.toString()),
-      //     code: order.code,
-      //     status: OrderStatus.PENDING,
-      //     expectDate: order.expectDate,
-      //     userId: order.userId,
-      //     repairmanId: null,
-      //     orderDetail: orderDetail,
-      //   };
 
       return {
         message: 'create successful',
@@ -161,7 +140,7 @@ export class OrderService {
           'You are not permited to access this data',
         );
       }
-
+      console.log({ order });
       return OrderReponseDto.formatDto(order);
     } catch (error) {
       console.log(error);
@@ -261,7 +240,6 @@ export class OrderService {
     }
     try {
       let orders = [];
-      console.log({ userId, status });
       if (status.length > 0) {
         orders = await this.prisma.order.findMany({
           where: {
@@ -556,6 +534,20 @@ export class OrderService {
       return order;
     } catch (error) {
       console.log(error);
+      throw error;
+    }
+  }
+
+  async getAllPendingOrderToAssign() {
+    try {
+      const orders = await this.prisma.order.findMany({
+        where: {
+          status: OrderStatus.PENDING,
+        },
+      });
+
+      return orders.map((order) => order.orderId);
+    } catch (error) {
       throw error;
     }
   }

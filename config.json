@@ -1,0 +1,6 @@
+{
+  "SystemConfig": {
+    "assignOrderInterval": 5,
+    "distanceToAssignOrder": 5
+  }
+}
