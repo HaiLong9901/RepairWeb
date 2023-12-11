@@ -117,4 +117,17 @@ export class SkillService {
       throw error;
     }
   }
+
+  async createMultiSkills(dto: CreateSkillRequestDto[]) {
+    try {
+      await this.prisma.skill.createMany({
+        data: dto.map((skill) => ({
+          ...skill,
+          isActive: true,
+        })),
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
 }

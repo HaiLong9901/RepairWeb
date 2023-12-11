@@ -9,6 +9,14 @@ export class MalfunctionService {
 
   async createMalfunction(dto: MalfunctionRequestDto) {
     try {
+      const existedService = await this.prisma.service.findUnique({
+        where: {
+          serviceId: dto.serviceId,
+        },
+      });
+      if (!existedService) {
+        throw new NotFoundException('Service is not found');
+      }
       const malfunction = await this.prisma.malfunctionCategory.create({
         data: {
           name: dto.name,

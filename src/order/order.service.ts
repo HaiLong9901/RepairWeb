@@ -551,4 +551,42 @@ export class OrderService {
       throw error;
     }
   }
+
+  // async statisticOrderByDay(from: string, to: string) {
+  //   try {
+  //     const orders = await this.prisma.order.findMany({
+  //       where: {
+  //         updatedAt: {
+  //           gte: new Date(from),
+  //           lte: new Date(to),
+  //         },
+  //       },
+  //       include: {
+  //         repairman: true,
+  //         orderDetails: {
+  //           include: {
+  //             service: true,
+  //           },
+  //         },
+  //       },
+  //     });
+  //     const ordersFilterByStatus = Object.keys(OrderStatus).map((key) => {
+  //       const orderList = orders.filter(
+  //         (order) => order.status === OrderStatus[`${key}`],
+  //       );
+  //       const orderRes = {
+  //         status: key,
+  //         orderList,
+  //       };
+
+  //       return orderRes;
+  //     });
+
+  //     const dailyOutcomeList = orders
+  //       .filter((order) => order.status === OrderStatus.COMPLETE)
+  //       .map((order) => {
+
+  //       });
+  //   } catch (error) {}
+  // }
 }

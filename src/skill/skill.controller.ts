@@ -55,4 +55,11 @@ export class SkillController {
   toggleSkillActive(@Param('skillId', ParseIntPipe) skillId: number) {
     return this.skillService.toggleSkillActive(skillId);
   }
+
+  @Post('createMultiSkills')
+  @UseGuards(JwtGuard, StaffGuard)
+  @ApiResponse({ status: 204 })
+  createMultiSkills(@Body() dto: CreateSkillRequestDto[]) {
+    return this.skillService.createMultiSkills(dto);
+  }
 }

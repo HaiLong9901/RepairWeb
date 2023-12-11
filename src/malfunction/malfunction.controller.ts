@@ -44,7 +44,7 @@ export class MalfunctionController {
   @Patch('updateMalfunction')
   @ApiResponse({ type: MalfunctionResponseDto })
   @UseGuards(JwtGuard, StaffGuard)
-  updateMalfunction(dto: MalfunctionRequestDto) {
+  updateMalfunction(@Body() dto: MalfunctionRequestDto) {
     return this.malfunctionService.updateMalfunction(dto);
   }
 
