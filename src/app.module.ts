@@ -16,6 +16,7 @@ import { MalfunctionModule } from './malfunction/malfunction.module';
 import { NotificationModule } from './notification/notification.module';
 import { MailModule } from './mail/mail.module';
 import { CartModule } from './cart/cart.module';
+import { SystemConfigModule } from './system-config/system-config.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CartModule } from './cart/cart.module';
     NotificationModule,
     MailModule,
     CartModule,
+    SystemConfigModule,
   ],
   controllers: [AppController, ServiceController],
   providers: [AppService, ServiceService],

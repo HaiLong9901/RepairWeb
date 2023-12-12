@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
   // UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -20,15 +21,23 @@ import { NotificationService } from 'src/notification/notification.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { OrderReponseDto } from './dto/response.dto';
+import { UserStatus } from 'src/enum/user-status';
+import { Cordinate, getDistance } from 'src/utils/getDistance';
 
 @Injectable()
-export class OrderService {
+export class OrderService implements OnModuleInit {
   constructor(
     private prisma: PrismaService,
     private notificationService: NotificationService,
     private jwtService: JwtService,
     private config: ConfigService,
   ) {}
+
+  onModuleInit() {
+    setInterval(async () => {
+      this.autoAssignOrder();
+    }, 10000);
+  }
 
   async createOrder(dto: OrderRequestDto, userId: string) {
     try {
@@ -544,9 +553,73 @@ export class OrderService {
         where: {
           status: OrderStatus.PENDING,
         },
+        include: {
+          address: true,
+        },
       });
 
-      return orders.map((order) => order.orderId);
+      return orders;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async autoAssignOrder() {
+    try {
+      console.log('auto assign');
+      const orderList = await this.getAllPendingOrderToAssign();
+      const repairmans = await this.prisma.user.findMany({
+        where: {
+          NOT: {
+            status: UserStatus.BUSY,
+          },
+          role: Role.ROLE_REPAIRMAN,
+        },
+        include: {
+          address: true,
+        },
+      });
+      if (orderList.length === 0) return;
+      orderList.forEach(async (order) => {
+        if (
+          order.address &&
+          order.address.latitude &&
+          order.address.longitude
+        ) {
+          const suitableRepairmans = repairmans.filter((repairman) => {
+            if (
+              !repairman.address ||
+              !repairman.address[0].latitude ||
+              !repairman.address[0].longitude
+            )
+              return false;
+            const repairmanCordinate: Cordinate = {
+              latitude: repairman.address[0].latitude,
+              longitude: repairman.address[0].longitude,
+            };
+
+            const orderCordinate: Cordinate = {
+              latitude: order.address.latitude,
+              longitude: order.address.longitude,
+            };
+
+            return getDistance(repairmanCordinate, orderCordinate) < 5;
+          });
+
+          if (
+            Array.isArray(suitableRepairmans) &&
+            suitableRepairmans.length > 0
+          ) {
+            suitableRepairmans.forEach(
+              async (rpm) =>
+                await this.assignOrder(
+                  parseInt(order.orderId.toString()),
+                  rpm.userId,
+                ),
+            );
+          }
+        }
+      });
     } catch (error) {
       throw error;
     }
