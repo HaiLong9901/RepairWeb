@@ -36,7 +36,7 @@ export class OrderService implements OnModuleInit {
   onModuleInit() {
     setInterval(async () => {
       this.autoAssignOrder();
-    }, 10000);
+    }, 1000000);
   }
 
   async createOrder(dto: OrderRequestDto, userId: string) {
