@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Service, UserAddress } from '@prisma/client';
+import { Component, Diagnosis, Service, UserAddress } from '@prisma/client';
 import { formatBigInt } from 'src/utils/formatResponse';
 
 export class OrderDetailReponseDto {
@@ -19,6 +19,9 @@ export class OrderDetailReponseDto {
   media: OrderMediaReponseDto[];
 
   @ApiProperty()
+  diagnosis: Diagnosis[];
+
+  @ApiProperty()
   service: Service;
   public static formatDto = (dto: OrderDetailReponseDto) => {
     return {
@@ -32,6 +35,9 @@ export class OrderDetailReponseDto {
           )
         : [],
       service: formatBigInt(dto.service),
+      diagnosis: dto.diagnosis?.map((dia) =>
+        DiagnosisResponseDto.formatDto(dia),
+      ),
     };
   };
 }
@@ -100,6 +106,9 @@ export class OrderReponseDto {
   @ApiProperty()
   address?: UserAddress;
 
+  @ApiProperty()
+  components?: Component;
+
   public static formatDto = (dto: any) => {
     return {
       orderId: dto.orderId.toString(),
@@ -112,6 +121,9 @@ export class OrderReponseDto {
       incurredCostReason: dto.incurredCostReason,
       orderDetails: dto.orderDetails.map((detail) =>
         OrderDetailReponseDto.formatDto(detail),
+      ),
+      components: dto.components?.map((component) =>
+        ComponentResponsetDto.formatDto(component),
       ),
       updatedAt: dto.updatedAt,
       createdAt: dto.createdAt,
@@ -131,7 +143,16 @@ export class DiagnosisResponseDto {
   malfuncId: number;
 
   @ApiProperty()
-  isAccept: boolean;
+  isAccepted: boolean;
+
+  public static formatDto = (dto: Diagnosis) => {
+    return {
+      diagnosisId: dto.diagnosisId.toString(),
+      orderDetailId: dto.orderDetailId.toString(),
+      malfuncId: dto.malfuncId.toString(),
+      isAccepted: dto.isAccepted,
+    };
+  };
 }
 
 export class ComponentResponsetDto {
@@ -161,4 +182,18 @@ export class ComponentResponsetDto {
 
   @ApiProperty()
   orderId: number;
+
+  public static formatDto = (dto: Component) => {
+    return {
+      componentId: dto.componentId.toString(),
+      name: dto.name,
+      quantity: dto.quantity,
+      unit: dto.unit,
+      pricePerUnit: dto.pricePerUnit,
+      brand: dto.brand,
+      model: dto.model,
+      supplier: dto.supplier,
+      orderId: dto.orderId.toString(),
+    };
+  };
 }

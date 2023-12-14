@@ -137,10 +137,12 @@ export class OrderService implements OnModuleInit {
             include: {
               media: true,
               service: true,
+              diagnosis: true,
             },
           },
           repairman: true,
           address: true,
+          components: true,
         },
       });
 
