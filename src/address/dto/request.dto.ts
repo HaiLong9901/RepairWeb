@@ -24,6 +24,7 @@ export class AddressRequestDto {
 
   @ApiProperty()
   @IsNumber()
+  @IsOptional()
   latitude: number;
 
   @ApiProperty()

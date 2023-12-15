@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   Param,
@@ -37,7 +36,7 @@ export class AddressController {
     return this.addressService.updateAddess(dto, user);
   }
 
-  @Delete('deleteAddress/:addressId')
+  @Patch('deleteAddress/:addressId')
   @ApiResponse({ status: 204 })
   @HttpCode(204)
   deleteAddress(

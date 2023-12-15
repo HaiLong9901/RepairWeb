@@ -17,5 +17,8 @@ export class AddressResponseDto {
   isMainAddress: boolean;
 
   @ApiProperty()
+  isActive: boolean;
+
+  @ApiProperty()
   userId: string;
 }

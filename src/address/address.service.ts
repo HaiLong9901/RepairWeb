@@ -43,10 +43,10 @@ export class AddressService {
       await this.prisma.userAddress.create({
         data: {
           ...dto,
+          isActive: true,
         },
       });
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -106,9 +106,12 @@ export class AddressService {
         throw new NotFoundException("User's address is not found");
       }
 
-      await this.prisma.userAddress.delete({
+      await this.prisma.userAddress.update({
         where: {
           addressId,
+        },
+        data: {
+          isActive: false,
         },
       });
     } catch (error) {
@@ -137,6 +140,7 @@ export class AddressService {
       const addressList = await this.prisma.userAddress.findMany({
         where: {
           userId: requestedUserId,
+          isActive: true,
         },
       });
 

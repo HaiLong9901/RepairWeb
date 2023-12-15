@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "UserAddress" ADD COLUMN     "isActive" BOOLEAN NOT NULL DEFAULT true,
+ALTER COLUMN "latitude" DROP NOT NULL,
+ALTER COLUMN "longitude" DROP NOT NULL;
