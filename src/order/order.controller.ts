@@ -101,7 +101,7 @@ export class OrderController {
   @Patch('cancelOrder')
   @ApiResponse({ status: 204 })
   @UseGuards(CustomerGuard, StaffGuard)
-  cancelOrder(@Req() req, dto: CancelOrderRequestDto) {
+  cancelOrder(@Req() req, @Body() dto: CancelOrderRequestDto) {
     const user = req.user;
     return this.orderService.cancelOrder(user, dto);
   }

@@ -12,4 +12,7 @@ export class NotificationResponseDto {
 
   @ApiProperty()
   notificationId: string;
+
+  @ApiProperty()
+  createdAt: string;
 }

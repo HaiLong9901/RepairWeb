@@ -151,10 +151,8 @@ export class OrderService implements OnModuleInit {
           'You are not permited to access this data',
         );
       }
-      console.log({ order });
       return OrderReponseDto.formatDto(order);
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }

@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Component, Diagnosis, Service, UserAddress } from '@prisma/client';
+import {
+  Component,
+  Diagnosis,
+  Service,
+  User,
+  UserAddress,
+} from '@prisma/client';
 import { formatBigInt } from 'src/utils/formatResponse';
 
 export class OrderDetailReponseDto {
@@ -109,6 +115,9 @@ export class OrderReponseDto {
   @ApiProperty()
   components?: Component;
 
+  @ApiProperty()
+  repairman?: User;
+
   public static formatDto = (dto: any) => {
     return {
       orderId: dto.orderId.toString(),
@@ -128,6 +137,7 @@ export class OrderReponseDto {
       updatedAt: dto.updatedAt,
       createdAt: dto.createdAt,
       address: dto.address,
+      repairman: dto.repairman,
     };
   };
 }
