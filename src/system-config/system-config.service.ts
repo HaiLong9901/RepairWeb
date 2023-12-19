@@ -1,18 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import * as fs from 'fs';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { SystemConfigRequestDto } from './dto/request.dto';
 @Injectable()
 export class SystemConfigService {
-  private readonly configPath = '././config.json';
+  constructor(private prisma: PrismaService) {}
 
-  getConfig() {
+  async getAllConfig() {
     try {
-      const fileData = fs.readFileSync(this.configPath, 'utf-8');
-      return JSON.parse(fileData);
+      const configs = await this.prisma.systemConfig.findMany();
+      return configs;
     } catch (error) {
-      console.error('Error reading file:', error);
       throw error;
     }
   }
 
-  updateConfig() {}
+  async updateConfig(dto: SystemConfigRequestDto) {
+    try {
+      const updatedConfig = await this.prisma.systemConfig.update({
+        where: {
+          id: dto.id,
+        },
+        data: {
+          switchRepairmanStatusPeriod: dto.switchRepairmanStatusPeriod,
+          distanceToAssignOrder: dto.distanceToAssignOrder,
+          assignOrderInterval: dto.assignOrderInterval,
+        },
+      });
+
+      return updatedConfig;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

@@ -17,6 +17,9 @@ export class ReviewService {
         where: {
           serviceId: dto.serviceId,
         },
+        include: {
+          reviews: true,
+        },
       });
 
       if (!existedService) {
@@ -29,10 +32,30 @@ export class ReviewService {
           userId,
         },
       });
+      if (
+        Array.isArray(existedService.reviews) &&
+        existedService.reviews.length > 0
+      ) {
+        const rate = Math.round(
+          (existedService.reviews.reduce(
+            (total, reviewRate) => (total += reviewRate.rate),
+            0,
+          ) +
+            dto.rate) /
+            (existedService.reviews.length + 1),
+        );
 
+        await this.prisma.service.update({
+          where: {
+            serviceId: dto.serviceId,
+          },
+          data: {
+            rate,
+          },
+        });
+      }
       return formatBigInt(review);
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -67,7 +90,6 @@ export class ReviewService {
 
       return formatBigInt(updatedReview);
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -100,7 +122,6 @@ export class ReviewService {
         message: 'Delete review successfully',
       };
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -119,12 +140,14 @@ export class ReviewService {
             },
           },
         },
+        orderBy: {
+          updatedAt: 'desc',
+        },
       });
 
       if (reviews.length === 0) return reviews;
       return reviews.map((val) => formatBigInt(val));
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }

@@ -39,7 +39,7 @@ export class ReviewController {
   @Patch('updateReview')
   @UseGuards(JwtGuard, CustomerGuard)
   @ApiResponse({ type: CreateReviewResponseDto })
-  updateReview(dto: UpdateReviewRequestDto, @Req() req) {
+  updateReview(@Body() dto: UpdateReviewRequestDto, @Req() req) {
     const { userId } = req.user;
     return this.reviewService.updateReview(dto, userId);
   }

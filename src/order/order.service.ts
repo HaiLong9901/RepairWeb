@@ -566,7 +566,6 @@ export class OrderService implements OnModuleInit {
 
   async autoAssignOrder() {
     try {
-      console.log('auto assign');
       const orderList = await this.getAllPendingOrderToAssign();
       const repairmans = await this.prisma.user.findMany({
         where: {

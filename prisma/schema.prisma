@@ -232,3 +232,10 @@ model Component {
 
   order Order @relation(fields: [orderId], references: [orderId])
 }
+
+model SystemConfig {
+  id                          Int @id @default(autoincrement())
+  assignOrderInterval         Int @default(5)
+  distanceToAssignOrder       Int @default(5)
+  switchRepairmanStatusPeriod Int @default(60)
+}
