@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Skill } from '@prisma/client';
+import { formatBigInt } from 'src/utils/formatResponse';
 
 export class ServiceResponseDto {
   @ApiProperty()
@@ -33,21 +34,23 @@ export class ServiceResponseDto {
   image: string;
 
   @ApiProperty()
-  malfunction?: any;
+  malfunctions?: any;
 
   public static formatDto(service: any): ServiceResponseDto {
     return {
       serviceId: service.serviceId,
       name: service.name,
       type: service.type,
-      price: service.price,
+      price: service.price?.toString(),
       rate: service.rate,
       desc: service.desc,
       skill: service.skill,
       createdAt: service.createdAt,
       updatedAt: service.updatedAt,
       image: service.image,
-      malfunction: service.malfunction,
+      malfunctions: Array.isArray(service.malfunctions)
+        ? service.malfunctions.map((mal) => formatBigInt(mal))
+        : [],
     };
   }
 }

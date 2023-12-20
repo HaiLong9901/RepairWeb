@@ -5,6 +5,7 @@ import {
   UpdateServiceRequestDto,
 } from './dto/request.dto';
 import { formatBigInt } from 'src/utils/formatResponse';
+import { ServiceResponseDto } from './dto/response.dto';
 
 @Injectable()
 export class ServiceService {
@@ -97,7 +98,7 @@ export class ServiceService {
         throw new NotFoundException('Service is not found');
       }
 
-      return formatBigInt(service);
+      return ServiceResponseDto.formatDto(service);
     } catch (error) {
       console.log(error);
       throw error;

@@ -6,7 +6,7 @@ export class CartItemResponseDto {
   id: string;
 
   @ApiProperty()
-  isChoosen: string;
+  isChoosen: boolean;
 
   @ApiProperty()
   cartId: string;
@@ -17,7 +17,7 @@ export class CartItemResponseDto {
   public static formatDto(cartItem: CartItem, service: Service) {
     const result: CartItemResponseDto = {
       id: cartItem.id.toString(),
-      isChoosen: cartItem.isChoosen.toString(),
+      isChoosen: cartItem.isChoosen,
       cartId: cartItem.cartId.toString(),
       service: {
         serviceId: service.serviceId,
