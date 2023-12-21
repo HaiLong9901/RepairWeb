@@ -8,7 +8,7 @@ export class SystemConfigService {
   async getAllConfig() {
     try {
       const configs = await this.prisma.systemConfig.findMany();
-      return configs;
+      return Array.isArray(configs) && configs[0];
     } catch (error) {
       throw error;
     }
