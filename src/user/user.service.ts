@@ -430,7 +430,6 @@ export class UserService implements OnModuleInit {
   }
 
   async createMultiUsers(dto: CreateUserReqestDto[], user: User) {
-    // console.log(dto);
     const hasAdminRole = dto.some((user) => user.role === Role.ROLE_ADMIN);
     if (hasAdminRole && user.role !== Role.ROLE_ADMIN) {
       throw new ForbiddenException("You're not permitted");
@@ -454,8 +453,6 @@ export class UserService implements OnModuleInit {
           return userToCreate;
         }),
       );
-
-      console.log({ userList });
 
       await this.prisma.user.createMany({
         data: userList,

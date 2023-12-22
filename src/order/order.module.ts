@@ -6,9 +6,11 @@ import { OrderGateway } from './order.gateway';
 import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { BullModule } from '@nestjs/bull';
+import { OrderProcessor } from './order.processor';
 
 @Module({
-  providers: [OrderService, OrderGateway],
+  providers: [OrderService, OrderGateway, OrderProcessor],
   controllers: [OrderController],
   imports: [
     NotificationModule,
@@ -16,6 +18,16 @@ import { JwtModule } from '@nestjs/jwt';
     AuthModule,
     NotificationModule,
     JwtModule,
+    BullModule.forRoot('alternative-config', {
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
+    BullModule.registerQueue({
+      configKey: 'alternative-config',
+      name: 'orderQueue',
+    }),
   ],
 })
 export class OrderModule {}

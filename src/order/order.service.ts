@@ -23,6 +23,8 @@ import { ConfigService } from '@nestjs/config';
 import { OrderReponseDto } from './dto/response.dto';
 import { UserStatus } from 'src/enum/user-status';
 import { Cordinate, getDistance } from 'src/utils/getDistance';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class OrderService implements OnModuleInit {
@@ -31,12 +33,13 @@ export class OrderService implements OnModuleInit {
     private notificationService: NotificationService,
     private jwtService: JwtService,
     private config: ConfigService,
+    @InjectQueue('orderQueue') private orderQueue: Queue,
   ) {}
 
   onModuleInit() {
-    setInterval(async () => {
-      this.autoAssignOrder();
-    }, 1000000);
+    // setInterval(async () => {
+    //   this.autoAssignOrder();
+    // }, 1000000);
   }
 
   async createOrder(dto: OrderRequestDto, userId: string) {
@@ -79,7 +82,7 @@ export class OrderService implements OnModuleInit {
             }),
         ),
       );
-
+      await this.orderQueue.add('processOrder', order.orderId.toString());
       return {
         message: 'create successful',
       };
