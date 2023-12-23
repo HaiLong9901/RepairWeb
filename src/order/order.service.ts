@@ -181,15 +181,25 @@ export class OrderService implements OnModuleInit {
 
     if (from && to) {
       searchTime = {
-        gte: from,
-        lte: to,
+        AND: [
+          {
+            createdAt: {
+              gte: from,
+            },
+          },
+          {
+            createdAt: {
+              lte: to,
+            },
+          },
+        ],
       };
     }
 
     let searchStatus = {};
     if (status) {
       searchStatus = {
-        status,
+        status: parseInt(status),
       };
     }
 
@@ -236,7 +246,6 @@ export class OrderService implements OnModuleInit {
 
       return orders.map((order) => OrderReponseDto.formatDto(order));
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }

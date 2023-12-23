@@ -118,6 +118,9 @@ export class OrderReponseDto {
   @ApiProperty()
   repairman?: User;
 
+  @ApiProperty()
+  user?: User;
+
   public static formatDto = (dto: any) => {
     return {
       orderId: dto.orderId.toString(),
@@ -138,6 +141,7 @@ export class OrderReponseDto {
       createdAt: dto.createdAt,
       address: dto.address,
       repairman: dto.repairman,
+      user: dto.user,
     };
   };
 }
