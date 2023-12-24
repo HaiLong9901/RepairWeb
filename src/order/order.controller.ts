@@ -118,6 +118,7 @@ export class OrderController {
   }
 
   @Patch('assignOrder')
+  @UseGuards(StaffGuard)
   @ApiResponse({ status: 204 })
   @ApiQuery({ name: 'orderId', required: true })
   @ApiQuery({ name: 'repairmanId', required: true })

@@ -143,6 +143,7 @@ export class OrderService implements OnModuleInit {
               diagnosis: true,
             },
           },
+          user: true,
           repairman: true,
           address: true,
           components: true,
