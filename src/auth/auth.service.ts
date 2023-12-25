@@ -37,13 +37,10 @@ export class AuthService {
       const existedPhone = await this.prisma.user.findUnique({
         where: {
           phone: dto.phone,
-          status: {
-            not: UserStatus.INACTIVE,
-          },
         },
       });
 
-      if (existedPhone) {
+      if (existedPhone && existedPhone.status !== UserStatus.INACTIVE) {
         throw new ForbiddenException('Phone number has been used');
       }
 
@@ -53,9 +50,78 @@ export class AuthService {
         },
       });
 
-      if (existedEmail) {
+      if (existedEmail && existedEmail.status !== UserStatus.INACTIVE) {
         throw new ForbiddenException('Email has been used');
       }
+
+      if (existedEmail && existedEmail.phone !== dto.phone) {
+        const user = await this.prisma.user.update({
+          where: {
+            email: dto.email,
+          },
+          data: {
+            password: hashPassword,
+            phone: dto.phone,
+            dob: dto.dob,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            role: Role.ROLE_USER,
+            status: UserStatus.INACTIVE,
+            gender: dto.gender,
+          },
+        });
+        delete user.password;
+        await this.otpService.sendOtp(user);
+        return user;
+      }
+
+      if (existedEmail && existedPhone.email !== dto.email) {
+        const user = await this.prisma.user.update({
+          where: {
+            phone: dto.phone,
+          },
+          data: {
+            password: hashPassword,
+            email: dto.email,
+            dob: dto.dob,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            role: Role.ROLE_USER,
+            status: UserStatus.INACTIVE,
+            gender: dto.gender,
+          },
+        });
+        delete user.password;
+        await this.otpService.sendOtp(user);
+        return user;
+      }
+
+      if (
+        existedEmail &&
+        existedPhone &&
+        existedEmail.phone === dto.phone &&
+        existedPhone.email === dto.email
+      ) {
+        const user = await this.prisma.user.update({
+          where: {
+            phone: dto.phone,
+          },
+          data: {
+            password: hashPassword,
+            dob: dto.dob,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            role: Role.ROLE_USER,
+            status: UserStatus.INACTIVE,
+            gender: dto.gender,
+          },
+        });
+
+        delete user.password;
+        await this.otpService.sendOtp(user);
+        return user;
+      }
+
       const user = await this.prisma.user.create({
         data: {
           email: dto.email,

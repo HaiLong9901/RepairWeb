@@ -60,9 +60,16 @@ export class OtpService {
           status: UserStatus.ACTIVE,
         },
       });
-      await this.cartService.createCart(userId);
+      const existedCart = this.prisma.cart.findUnique({
+        where: {
+          userId,
+        },
+      });
+
+      if (!existedCart) {
+        await this.cartService.createCart(userId);
+      }
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
