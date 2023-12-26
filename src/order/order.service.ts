@@ -24,7 +24,7 @@ import { OrderReponseDto } from './dto/response.dto';
 import { UserStatus } from 'src/enum/user-status';
 import { Cordinate, getDistance } from 'src/utils/getDistance';
 import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { Queue } from './Queue';
 
 @Injectable()
 export class OrderService implements OnModuleInit {
@@ -33,13 +33,31 @@ export class OrderService implements OnModuleInit {
     private notificationService: NotificationService,
     private jwtService: JwtService,
     private config: ConfigService,
-    @InjectQueue('orderQueue') private orderQueue: Queue,
-  ) {}
+    private orderQueue: Queue, // @InjectQueue('orderQueue') private orderQueue: Queue,
+  ) {
+    // this.orderQueue.init([]);
+  }
 
   onModuleInit() {
-    // setInterval(async () => {
-    //   this.autoAssignOrder();
-    // }, 1000000);
+    console.log({ queue: this.orderQueue.getQueue() });
+    setInterval(async () => {
+      console.log({ queue: this.orderQueue.getQueue() });
+      if (
+        Array.isArray(this.orderQueue.getQueue()) &&
+        this.orderQueue.getQueue().length > 0
+      ) {
+        const orderId = this.orderQueue.dequeue();
+        await this.processOrder(orderId);
+      }
+    }, 20000);
+  }
+
+  addOrderToQueue(orderId: string) {
+    this.orderQueue.enqueue(orderId);
+  }
+
+  async processOrder(orderId: string) {
+    console.log('process order: ', orderId);
   }
 
   async createOrder(dto: OrderRequestDto, userId: string) {
@@ -82,7 +100,8 @@ export class OrderService implements OnModuleInit {
             }),
         ),
       );
-      await this.orderQueue.add('processOrder', order.orderId.toString());
+      // await this.orderQueue.add('processOrder', order.orderId.toString());
+      this.addOrderToQueue(order.orderId.toString());
       return {
         message: 'create successful',
       };

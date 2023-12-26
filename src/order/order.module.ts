@@ -8,9 +8,10 @@ import { AuthModule } from 'src/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { BullModule } from '@nestjs/bull';
 import { OrderProcessor } from './order.processor';
+import { Queue } from './Queue';
 
 @Module({
-  providers: [OrderService, OrderGateway, OrderProcessor],
+  providers: [OrderService, OrderGateway, OrderProcessor, Queue],
   controllers: [OrderController],
   imports: [
     NotificationModule,
