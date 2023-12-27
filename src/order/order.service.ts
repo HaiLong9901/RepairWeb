@@ -22,8 +22,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { OrderReponseDto } from './dto/response.dto';
 import { UserStatus } from 'src/enum/user-status';
-import { Cordinate, getDistance } from 'src/utils/getDistance';
-import { InjectQueue } from '@nestjs/bull';
+import { Coordinate, getDistance } from 'src/utils/getDistance';
 import { Queue } from './Queue';
 
 @Injectable()
@@ -39,25 +38,122 @@ export class OrderService implements OnModuleInit {
   }
 
   onModuleInit() {
-    console.log({ queue: this.orderQueue.getQueue() });
+    const coor: Coordinate = {
+      latitude: 20.898165169150076,
+      longitude: 105.86074685767211,
+    };
+
+    const coor2: Coordinate = {
+      latitude: 21.005198698426703,
+      longitude: 105.8439234396032,
+    };
+
+    console.log({ distance: getDistance(coor, coor2) });
     setInterval(async () => {
       console.log({ queue: this.orderQueue.getQueue() });
       if (
         Array.isArray(this.orderQueue.getQueue()) &&
         this.orderQueue.getQueue().length > 0
       ) {
-        const orderId = this.orderQueue.dequeue();
-        await this.processOrder(orderId);
+        const order = this.orderQueue.dequeue();
+        await this.processOrder(order);
       }
     }, 20000);
   }
 
-  addOrderToQueue(orderId: string) {
-    this.orderQueue.enqueue(orderId);
+  addOrderToQueue(order: {
+    orderId: string;
+    skills: number[];
+    coordinate: Coordinate;
+  }) {
+    this.orderQueue.enqueue(order);
   }
 
-  async processOrder(orderId: string) {
-    console.log('process order: ', orderId);
+  async processOrder(order: {
+    orderId: string;
+    skills: number[];
+    coordinate: Coordinate | null;
+  }) {
+    console.log('process order: ' + JSON.stringify(order));
+    const { orderId, skills, coordinate } = order;
+    if (coordinate === null) return;
+    const repairmans = await this.prisma.user.findMany({
+      where: {
+        role: Role.ROLE_REPAIRMAN,
+        status: UserStatus.ACTIVE,
+      },
+      include: {
+        repairmanSkill: true,
+        address: true,
+      },
+    });
+    const repairmanList = repairmans
+      .filter((repairman) => {
+        if (
+          !repairman.address ||
+          repairman.address.length === 0 ||
+          repairman.address[0].latitude === null ||
+          repairman.address[0].longitude === null
+        )
+          return false;
+        else return true;
+      })
+      .map((rpm) => {
+        if (rpm) {
+          return {
+            repairmanId: rpm.userId,
+            coordinate: {
+              latitude: rpm.address[0].latitude,
+              longitude: rpm.address[0].longitude,
+            },
+            skills:
+              Array.isArray(rpm.repairmanSkill) && rpm.repairmanSkill.length > 0
+                ? rpm.repairmanSkill.map((skill) => skill.skillId)
+                : [],
+          };
+        }
+      });
+    const suitableRepairmans = [];
+    if (
+      Array.isArray(repairmanList) &&
+      repairmanList.length > 0 &&
+      Array.isArray(repairmanList) &&
+      repairmanList.length > 0
+    ) {
+      repairmanList.forEach((rpm) => {
+        const isSuitable = skills.every((skill: number) =>
+          rpm.skills.includes(skill),
+        );
+
+        if (isSuitable) suitableRepairmans.push(rpm);
+      });
+    }
+
+    if (Array.isArray(suitableRepairmans) && suitableRepairmans.length > 0) {
+      const filterdRepairmanByCoordinate = suitableRepairmans
+        .map((rpm) => {
+          return {
+            ...rpm,
+            distance: getDistance(coordinate, rpm.coordinate),
+          };
+        })
+        .filter((rpm) => rpm && rpm.distance > 5)
+        .sort((rpm1, rpm2) => rpm1 && rpm2 && rpm1.distance - rpm2.distance);
+
+      if (
+        Array.isArray(filterdRepairmanByCoordinate) &&
+        filterdRepairmanByCoordinate.length > 0
+      ) {
+        await this.assignOrder(
+          parseInt(orderId),
+          filterdRepairmanByCoordinate[0].repairmanId,
+        );
+      } else {
+        return;
+      }
+    } else {
+      return;
+    }
   }
 
   async createOrder(dto: OrderRequestDto, userId: string) {
@@ -100,13 +196,45 @@ export class OrderService implements OnModuleInit {
             }),
         ),
       );
-      // await this.orderQueue.add('processOrder', order.orderId.toString());
-      this.addOrderToQueue(order.orderId.toString());
+
+      const skills = [];
+      Promise.all(
+        dto.orderDetail.map(async (detail) => {
+          const service = await this.prisma.service.findUnique({
+            where: {
+              serviceId: detail.serviceId,
+            },
+          });
+
+          if (service && service.skillId) {
+            skills.push(service.skillId);
+          }
+        }),
+      );
+
+      const address = await this.prisma.userAddress.findUnique({
+        where: {
+          addressId: dto.addressId,
+        },
+      });
+      let coordinate: Coordinate | null;
+      if (!address || !address.latitude || !address.latitude) {
+        coordinate = null;
+      } else {
+        coordinate = {
+          latitude: address.latitude,
+          longitude: address.longitude,
+        };
+      }
+      this.addOrderToQueue({
+        orderId: order.orderId.toString(),
+        skills,
+        coordinate,
+      });
       return {
         message: 'create successful',
       };
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -624,12 +752,12 @@ export class OrderService implements OnModuleInit {
               !repairman.address[0].longitude
             )
               return false;
-            const repairmanCordinate: Cordinate = {
+            const repairmanCordinate: Coordinate = {
               latitude: repairman.address[0].latitude,
               longitude: repairman.address[0].longitude,
             };
 
-            const orderCordinate: Cordinate = {
+            const orderCordinate: Coordinate = {
               latitude: order.address.latitude,
               longitude: order.address.longitude,
             };

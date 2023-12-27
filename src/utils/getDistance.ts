@@ -1,11 +1,11 @@
-export interface Cordinate {
+export interface Coordinate {
   longitude: number;
   latitude: number;
 }
 const toRadians = (degrees: number) => {
   return (degrees * Math.PI) / 180;
 };
-export const getDistance = (user1: Cordinate, user2: Cordinate) => {
+export const getDistance = (user1: Coordinate, user2: Coordinate) => {
   const EarthRadius = 6371;
 
   const lat1Rad = toRadians(user1.latitude);

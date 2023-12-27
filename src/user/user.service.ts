@@ -21,6 +21,7 @@ import { admin, customer, repairman, staff } from './dto/mockdata';
 import { CartService } from 'src/cart/cart.service';
 import { UserResponseDto } from './dto/response';
 import { User } from '@prisma/client';
+import { AddressRequestDto } from 'src/address/dto/request.dto';
 @Injectable()
 export class UserService implements OnModuleInit {
   constructor(
@@ -429,16 +430,22 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async createMultiUsers(dto: CreateUserReqestDto[], user: User) {
+  async createMultiUsers(
+    dto: CreateUserReqestDto[],
+    user: User,
+    addressList: AddressRequestDto[] | undefined = [],
+  ) {
     const hasAdminRole = dto.some((user) => user.role === Role.ROLE_ADMIN);
     if (hasAdminRole && user.role !== Role.ROLE_ADMIN) {
       throw new ForbiddenException("You're not permitted");
     }
     try {
+      const userIdList: string[] = [];
       const userList: any = await Promise.all(
         dto.map(async (user) => {
           const hashPassword = await argon.hash(user.password);
           const userId = generateUserId(user.phone, user.role);
+          userIdList.push(userId);
           const account =
             generateVNeseAccName(user.lastName + ' ' + user.firstName) +
             userId.slice(7, userId.length);
@@ -449,7 +456,6 @@ export class UserService implements OnModuleInit {
             userId,
             status: UserStatus.ACTIVE,
           };
-          console.log({ userToCreate });
           return userToCreate;
         }),
       );
@@ -457,9 +463,36 @@ export class UserService implements OnModuleInit {
       await this.prisma.user.createMany({
         data: userList,
       });
+      const addressIdList: number[] = [];
+      if (Array.isArray(addressList) && addressList.length > 0) {
+        Promise.all(
+          addressList.map(async (address, index) => {
+            if (
+              typeof userIdList[index] === 'string' &&
+              userIdList.length > 0
+            ) {
+              const userId = userIdList[index];
+              const addr = await this.prisma.userAddress.create({
+                data: {
+                  latitude: address.latitude,
+                  longitude: address.longitude,
+                  address: '',
+                  userId,
+                  isMainAddress: true,
+                },
+              });
+
+              if (addr) {
+                addressIdList.push(addr.addressId);
+              }
+            }
+          }),
+        );
+      }
 
       return {
-        message: 'success',
+        userIdList,
+        addressIdList,
       };
     } catch (error) {
       throw error;
