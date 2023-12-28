@@ -94,6 +94,11 @@ export class OrderRequestDto {
   @ApiProperty()
   @IsArray()
   orderDetail?: DetailOrderRequestDto[];
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  userId?: string;
 }
 
 export class UpdateOrderStatusRequestDto {

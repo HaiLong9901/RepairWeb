@@ -89,7 +89,6 @@ export class AddressService {
 
       return updatedAddress;
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -115,7 +114,6 @@ export class AddressService {
         },
       });
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -146,7 +144,43 @@ export class AddressService {
 
       return addressList;
     } catch (error) {
-      console.log(error);
+      throw error;
+    }
+  }
+
+  async createMultiAddress(dto: AddressRequestDto[]) {
+    console.log({ dto });
+    try {
+      if (Array.isArray(dto)) {
+        if (dto.length === 0)
+          return {
+            addressIdList: [],
+          };
+        const addressIdList = [];
+        await Promise.all(
+          dto.map(async (address) => {
+            const createdAddress = await this.prisma.userAddress.create({
+              data: {
+                userId: address.userId,
+                longitude: address.longitude,
+                latitude: address.latitude,
+                isMainAddress: true,
+                address: '',
+              },
+            });
+
+            addressIdList.push(createdAddress.addressId);
+          }),
+        );
+        return {
+          addressIdList: addressIdList,
+        };
+      }
+
+      return {
+        addressIdList: [],
+      };
+    } catch (error) {
       throw error;
     }
   }

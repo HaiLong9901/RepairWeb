@@ -53,4 +53,10 @@ export class AddressController {
     const user = req.user;
     return this.addressService.getAllUserAddress(userId, user);
   }
+
+  @Post('createMultiAddress')
+  @ApiResponse({ status: 200 })
+  createMultiAddress(@Body() addressList: AddressRequestDto[]) {
+    return this.addressService.createMultiAddress(addressList);
+  }
 }

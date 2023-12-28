@@ -430,11 +430,7 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async createMultiUsers(
-    dto: CreateUserReqestDto[],
-    user: User,
-    addressList: AddressRequestDto[] | undefined = [],
-  ) {
+  async createMultiUsers(dto: CreateUserReqestDto[], user: User) {
     const hasAdminRole = dto.some((user) => user.role === Role.ROLE_ADMIN);
     if (hasAdminRole && user.role !== Role.ROLE_ADMIN) {
       throw new ForbiddenException("You're not permitted");
@@ -463,36 +459,9 @@ export class UserService implements OnModuleInit {
       await this.prisma.user.createMany({
         data: userList,
       });
-      const addressIdList: number[] = [];
-      if (Array.isArray(addressList) && addressList.length > 0) {
-        Promise.all(
-          addressList.map(async (address, index) => {
-            if (
-              typeof userIdList[index] === 'string' &&
-              userIdList.length > 0
-            ) {
-              const userId = userIdList[index];
-              const addr = await this.prisma.userAddress.create({
-                data: {
-                  latitude: address.latitude,
-                  longitude: address.longitude,
-                  address: '',
-                  userId,
-                  isMainAddress: true,
-                },
-              });
-
-              if (addr) {
-                addressIdList.push(addr.addressId);
-              }
-            }
-          }),
-        );
-      }
 
       return {
         userIdList,
-        addressIdList,
       };
     } catch (error) {
       throw error;

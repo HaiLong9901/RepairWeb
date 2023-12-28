@@ -233,6 +233,7 @@ export class OrderService implements OnModuleInit {
       });
       return {
         message: 'create successful',
+        orderId: order.orderId,
       };
     } catch (error) {
       throw error;
@@ -707,82 +708,82 @@ export class OrderService implements OnModuleInit {
     }
   }
 
-  async getAllPendingOrderToAssign() {
-    try {
-      const orders = await this.prisma.order.findMany({
-        where: {
-          status: OrderStatus.PENDING,
-        },
-        include: {
-          address: true,
-        },
-      });
+  // async getAllPendingOrderToAssign() {
+  //   try {
+  //     const orders = await this.prisma.order.findMany({
+  //       where: {
+  //         status: OrderStatus.PENDING,
+  //       },
+  //       include: {
+  //         address: true,
+  //       },
+  //     });
 
-      return orders;
-    } catch (error) {
-      throw error;
-    }
-  }
+  //     return orders;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
-  async autoAssignOrder() {
-    try {
-      const orderList = await this.getAllPendingOrderToAssign();
-      const repairmans = await this.prisma.user.findMany({
-        where: {
-          NOT: {
-            status: UserStatus.BUSY,
-          },
-          role: Role.ROLE_REPAIRMAN,
-        },
-        include: {
-          address: true,
-        },
-      });
-      if (orderList.length === 0) return;
-      orderList.forEach(async (order) => {
-        if (
-          order.address &&
-          order.address.latitude &&
-          order.address.longitude
-        ) {
-          const suitableRepairmans = repairmans.filter((repairman) => {
-            if (
-              !repairman.address ||
-              !repairman.address[0].latitude ||
-              !repairman.address[0].longitude
-            )
-              return false;
-            const repairmanCordinate: Coordinate = {
-              latitude: repairman.address[0].latitude,
-              longitude: repairman.address[0].longitude,
-            };
+  // async autoAssignOrder() {
+  //   try {
+  //     const orderList = await this.getAllPendingOrderToAssign();
+  //     const repairmans = await this.prisma.user.findMany({
+  //       where: {
+  //         NOT: {
+  //           status: UserStatus.BUSY,
+  //         },
+  //         role: Role.ROLE_REPAIRMAN,
+  //       },
+  //       include: {
+  //         address: true,
+  //       },
+  //     });
+  //     if (orderList.length === 0) return;
+  //     orderList.forEach(async (order) => {
+  //       if (
+  //         order.address &&
+  //         order.address.latitude &&
+  //         order.address.longitude
+  //       ) {
+  //         const suitableRepairmans = repairmans.filter((repairman) => {
+  //           if (
+  //             !repairman.address ||
+  //             !repairman.address[0].latitude ||
+  //             !repairman.address[0].longitude
+  //           )
+  //             return false;
+  //           const repairmanCordinate: Coordinate = {
+  //             latitude: repairman.address[0].latitude,
+  //             longitude: repairman.address[0].longitude,
+  //           };
 
-            const orderCordinate: Coordinate = {
-              latitude: order.address.latitude,
-              longitude: order.address.longitude,
-            };
+  //           const orderCordinate: Coordinate = {
+  //             latitude: order.address.latitude,
+  //             longitude: order.address.longitude,
+  //           };
 
-            return getDistance(repairmanCordinate, orderCordinate) < 5;
-          });
+  //           return getDistance(repairmanCordinate, orderCordinate) < 5;
+  //         });
 
-          if (
-            Array.isArray(suitableRepairmans) &&
-            suitableRepairmans.length > 0
-          ) {
-            suitableRepairmans.forEach(
-              async (rpm) =>
-                await this.assignOrder(
-                  parseInt(order.orderId.toString()),
-                  rpm.userId,
-                ),
-            );
-          }
-        }
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
+  //         if (
+  //           Array.isArray(suitableRepairmans) &&
+  //           suitableRepairmans.length > 0
+  //         ) {
+  //           suitableRepairmans.forEach(
+  //             async (rpm) =>
+  //               await this.assignOrder(
+  //                 parseInt(order.orderId.toString()),
+  //                 rpm.userId,
+  //               ),
+  //           );
+  //         }
+  //       }
+  //     });
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   // async statisticOrderByDay(from: string, to: string) {
   //   try {
@@ -821,4 +822,23 @@ export class OrderService implements OnModuleInit {
   //       });
   //   } catch (error) {}
   // }
+
+  async createMultiOrders(dto: OrderRequestDto[]) {
+    try {
+      const orderIdList = [];
+      if (Array.isArray(dto) && dto.length > 0) {
+        Promise.all(
+          dto.map(async (order) => {
+            const createdOrder = await this.createOrder(order, order.userId);
+            orderIdList.push(createdOrder.orderId);
+          }),
+        );
+      }
+      return {
+        orderIdList,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 }
