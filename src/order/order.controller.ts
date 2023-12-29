@@ -128,4 +128,11 @@ export class OrderController {
     if (!orderId) throw new NotFoundException('OrderId is not valid');
     return this.orderService.assignOrder(convertedOrderId, repairmanId);
   }
+
+  @Post('/createMultiOrder')
+  @UseGuards(StaffGuard)
+  @ApiResponse({ status: 204 })
+  createMultiOrders(@Body() dto: OrderRequestDto[]) {
+    return this.orderService.createMultiOrders(dto);
+  }
 }

@@ -38,17 +38,17 @@ export class OrderService implements OnModuleInit {
   }
 
   onModuleInit() {
-    const coor: Coordinate = {
-      latitude: 20.898165169150076,
-      longitude: 105.86074685767211,
-    };
+    // const coor: Coordinate = {
+    //   latitude: 20.898165169150076,
+    //   longitude: 105.86074685767211,
+    // };
 
-    const coor2: Coordinate = {
-      latitude: 21.005198698426703,
-      longitude: 105.8439234396032,
-    };
+    // const coor2: Coordinate = {
+    //   latitude: 21.005198698426703,
+    //   longitude: 105.8439234396032,
+    // };
 
-    console.log({ distance: getDistance(coor, coor2) });
+    // console.log({ distance: getDistance(coor, coor2) });
     setInterval(async () => {
       console.log({ queue: this.orderQueue.getQueue() });
       if (
@@ -169,7 +169,7 @@ export class OrderService implements OnModuleInit {
       });
 
       const orderDetails = await Promise.all(
-        dto.orderDetail.map(
+        dto.orderDetail?.map(
           async (value) =>
             await this.prisma.orderDetail.create({
               data: {
@@ -181,21 +181,23 @@ export class OrderService implements OnModuleInit {
         ),
       );
 
-      await Promise.all(
-        orderDetails.map(
-          async (value, idx) =>
-            await this.prisma.orderMedia.createMany({
-              data: dto.orderDetail[idx].media.map((val) => {
-                return {
-                  orderDetailId: value.orderDetailId,
-                  mediaType: val.mediaType,
-                  url: val.url,
-                  alt: val.alt,
-                };
+      if (dto.orderDetail.every((detail) => detail.media !== undefined)) {
+        await Promise.all(
+          orderDetails?.map(
+            async (value, idx) =>
+              await this.prisma.orderMedia.createMany({
+                data: dto.orderDetail[idx].media.map((val) => {
+                  return {
+                    orderDetailId: value.orderDetailId,
+                    mediaType: val.mediaType,
+                    url: val.url,
+                    alt: val.alt,
+                  };
+                }),
               }),
-            }),
-        ),
-      );
+          ),
+        );
+      }
 
       const skills = [];
       Promise.all(
