@@ -50,8 +50,8 @@ model Otp {
 model UserAddress {
   addressId     Int     @id @default(autoincrement())
   address       String
-  longitude     Int?
-  latitude      Int?
+  longitude     Float?
+  latitude      Float?
   isMainAddress Boolean
   userId        String
   isActive      Boolean @default(true)

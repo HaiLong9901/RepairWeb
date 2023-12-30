@@ -130,4 +130,32 @@ export class SkillService {
       throw error;
     }
   }
+
+  async updateRepairmanSkill(
+    dto: {
+      repairmanId: string;
+      skillIdList: number[];
+    }[],
+  ) {
+    try {
+      await Promise.all(
+        dto.map(async (val) => {
+          await this.prisma.repairmanSkill.createMany({
+            data: val.skillIdList.map((skillId) => {
+              return {
+                userId: val.repairmanId,
+                skillId,
+              };
+            }),
+          });
+        }),
+      );
+
+      return {
+        message: 'success',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 }

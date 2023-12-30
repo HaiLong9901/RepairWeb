@@ -62,4 +62,13 @@ export class SkillController {
   createMultiSkills(@Body() dto: CreateSkillRequestDto[]) {
     return this.skillService.createMultiSkills(dto);
   }
+
+  @Post('updateRepairmanSkill')
+  @UseGuards(JwtGuard, StaffGuard)
+  @ApiResponse({ status: 204 })
+  updateRepairmanSkill(
+    @Body() dto: { repairmanId: string; skillIdList: number[] }[],
+  ) {
+    return this.skillService.updateRepairmanSkill(dto);
+  }
 }
