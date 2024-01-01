@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SystemConfigRequestDto } from './dto/request.dto';
+import { OrderService } from 'src/order/order.service';
 @Injectable()
 export class SystemConfigService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private orderService: OrderService,
+  ) {}
 
   async getAllConfig() {
     try {
@@ -26,6 +30,9 @@ export class SystemConfigService {
           assignOrderInterval: dto.assignOrderInterval,
         },
       });
+
+      // OrderService.intervalDur = dto.assignOrderInterval * 60000;
+      this.orderService.updateInterval(dto.assignOrderInterval * 60000);
 
       return updatedConfig;
     } catch (error) {

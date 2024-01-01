@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -24,41 +25,62 @@ import { OrderReponseDto } from './dto/response.dto';
 import { UserStatus } from 'src/enum/user-status';
 import { Coordinate, getDistance } from 'src/utils/getDistance';
 import { Queue } from './Queue';
+import { interval, Subject } from 'rxjs';
+import { takeUntil, switchMap, delay } from 'rxjs/operators';
 
+enum StatisticType {
+  Outcome = 'outcome',
+  Service = 'service',
+  Order = 'order',
+}
 @Injectable()
 export class OrderService implements OnModuleInit {
+  public static intervalDur = 20000;
+  private destroy$ = new Subject<void>();
+  private interval$ = new Subject<number>();
   constructor(
     private prisma: PrismaService,
     private notificationService: NotificationService,
     private jwtService: JwtService,
     private config: ConfigService,
-    private orderQueue: Queue, // @InjectQueue('orderQueue') private orderQueue: Queue,
-  ) {
-    // this.orderQueue.init([]);
-  }
+    private orderQueue: Queue,
+  ) {}
 
   onModuleInit() {
-    // const coor: Coordinate = {
-    //   latitude: 20.898165169150076,
-    //   longitude: 105.86074685767211,
-    // };
+    this.startInterval();
 
-    // const coor2: Coordinate = {
-    //   latitude: 21.005198698426703,
-    //   longitude: 105.8439234396032,
-    // };
+    setTimeout(() => {
+      this.updateInterval(OrderService.intervalDur);
+    }, 5000);
+  }
 
-    // console.log({ distance: getDistance(coor, coor2) });
-    setInterval(async () => {
-      console.log({ queue: this.orderQueue.getQueue() });
-      if (
-        Array.isArray(this.orderQueue.getQueue()) &&
-        this.orderQueue.getQueue().length > 0
-      ) {
-        const order = this.orderQueue.dequeue();
-        await this.processOrder(order);
-      }
-    }, 20000);
+  private startInterval(): void {
+    this.interval$
+      .pipe(
+        switchMap((intervalDuration) =>
+          interval(intervalDuration).pipe(takeUntil(this.destroy$)),
+        ),
+        delay(0),
+      )
+      .subscribe(async () => {
+        console.log({ queue: this.orderQueue.getQueue() });
+        if (
+          Array.isArray(this.orderQueue.getQueue()) &&
+          this.orderQueue.getQueue().length > 0
+        ) {
+          const order = this.orderQueue.dequeue();
+          await this.processOrder(order);
+        }
+      });
+  }
+
+  updateInterval(newInterval: number): void {
+    this.interval$.next(newInterval);
+  }
+
+  stopInterval(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   addOrderToQueue(order: {
@@ -839,6 +861,68 @@ export class OrderService implements OnModuleInit {
       return {
         orderIdList,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getStatistic(query: any) {
+    const { from, to, type } = query;
+    try {
+      if (!(type in StatisticType)) {
+        return new BadRequestException('Loại thồng kê không tồn tại');
+      }
+
+      const fromDate = new Date(from);
+      const toDate = new Date(to);
+
+      if (fromDate < toDate) {
+        throw new BadRequestException('Ngày thống kê không hợp lệ');
+      }
+
+      const statistic: any = [];
+      while (fromDate <= toDate) {
+        const current = fromDate;
+        const nextDate = new Date(
+          `${current.getFullYear()}-${current.getMonth()}-${current.setDate(
+            current.getDate() + 1,
+          )}`,
+        );
+        const orders = await this.prisma.order.findMany({
+          where: {
+            AND: [
+              {
+                updatedAt: {
+                  gte: current,
+                },
+              },
+              {
+                updatedAt: {
+                  lt: nextDate,
+                },
+              },
+            ],
+            status: OrderStatus.COMPLETE,
+          },
+          include: {
+            orderDetails: {
+              include: {
+                service: true,
+              },
+            },
+            repairman: true,
+          },
+        });
+
+        const value = {
+          date: current.toLocaleDateString(),
+          data: orders,
+        };
+
+        statistic.push(value);
+      }
+
+      return statistic;
     } catch (error) {
       throw error;
     }

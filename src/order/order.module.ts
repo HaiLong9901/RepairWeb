@@ -30,5 +30,6 @@ import { Queue } from './Queue';
       name: 'orderQueue',
     }),
   ],
+  exports: [OrderService],
 })
 export class OrderModule {}

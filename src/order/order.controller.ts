@@ -135,4 +135,13 @@ export class OrderController {
   createMultiOrders(@Body() dto: OrderRequestDto[]) {
     return this.orderService.createMultiOrders(dto);
   }
+
+  @Get('/statistic')
+  @UseGuards(StaffGuard)
+  @ApiQuery({ name: 'from', required: true })
+  @ApiQuery({ name: 'to', required: true })
+  @ApiQuery({ name: 'type', required: true })
+  getStatistic(@Query() query: any) {
+    return this.orderService.getStatistic(query);
+  }
 }
