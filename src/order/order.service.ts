@@ -257,7 +257,7 @@ export class OrderService implements OnModuleInit {
       });
       return {
         message: 'create successful',
-        orderId: order.orderId,
+        orderId: order.orderId.toLocaleString(),
       };
     } catch (error) {
       throw error;
