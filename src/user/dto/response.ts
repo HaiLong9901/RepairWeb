@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Skill, UserAddress } from '@prisma/client';
+import { formatBigInt } from 'src/utils/formatResponse';
 
 export class UserResponseDto {
   @ApiProperty()
@@ -45,7 +46,7 @@ export class UserResponseDto {
   skills?: any;
 
   @ApiProperty()
-  address?: string[];
+  address?: UserAddress[];
 
   public static formatDto(user: any): UserResponseDto {
     return {
@@ -68,7 +69,7 @@ export class UserResponseDto {
           skillId: skill.skillId,
         };
       }),
-      address: user?.address?.map((addr: UserAddress) => addr.address),
+      address: user?.address?.map((addr: UserAddress) => formatBigInt(addr)),
     };
   }
 }

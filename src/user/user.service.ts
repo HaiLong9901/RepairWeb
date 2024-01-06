@@ -117,6 +117,7 @@ export class UserService implements OnModuleInit {
               skill: true,
             },
           },
+          address: true,
         },
       });
       return users.map((user) => UserResponseDto.formatDto(user));

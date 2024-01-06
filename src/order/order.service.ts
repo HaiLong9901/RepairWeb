@@ -47,8 +47,11 @@ export class OrderService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
+    console.log('restart server');
     this.startInterval();
-
+    setTimeout(async () => {
+      await this.getAllPendingOrderToAssign();
+    }, 5000);
     setTimeout(() => {
       this.updateInterval(OrderService.intervalDur);
     }, 5000);
@@ -159,13 +162,15 @@ export class OrderService implements OnModuleInit {
             distance: getDistance(coordinate, rpm.coordinate),
           };
         })
-        .filter((rpm) => rpm && rpm.distance > 5)
+        .filter((rpm) => rpm && rpm.distance < 5)
         .sort((rpm1, rpm2) => rpm1 && rpm2 && rpm1.distance - rpm2.distance);
 
+      console.log({ filterdRepairmanByCoordinate });
       if (
         Array.isArray(filterdRepairmanByCoordinate) &&
         filterdRepairmanByCoordinate.length > 0
       ) {
+        console.log({ choose: filterdRepairmanByCoordinate[0] });
         await this.assignOrder(
           parseInt(orderId),
           filterdRepairmanByCoordinate[0].repairmanId,
@@ -732,22 +737,45 @@ export class OrderService implements OnModuleInit {
     }
   }
 
-  // async getAllPendingOrderToAssign() {
-  //   try {
-  //     const orders = await this.prisma.order.findMany({
-  //       where: {
-  //         status: OrderStatus.PENDING,
-  //       },
-  //       include: {
-  //         address: true,
-  //       },
-  //     });
+  async getAllPendingOrderToAssign() {
+    try {
+      const orders = await this.prisma.order.findMany({
+        where: {
+          status: OrderStatus.PENDING,
+          repairman: null,
+        },
+        include: {
+          address: true,
+          orderDetails: {
+            include: {
+              service: true,
+            },
+          },
+        },
+      });
+      if (Array.isArray(orders) && orders.length > 0) {
+        orders.forEach((order) => {
+          const data = {
+            orderId: order.orderId.toString(),
+            skills: order.orderDetails.map((detail) => detail.service.skillId),
+            coordinate:
+              order.address.latitude !== null &&
+              order.address.longitude !== null
+                ? {
+                    latitude: order.address.latitude,
+                    longitude: order.address.longitude,
+                  }
+                : null,
+          };
 
-  //     return orders;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
+          this.addOrderToQueue(data);
+        });
+      }
+      return orders;
+    } catch (error) {
+      throw error;
+    }
+  }
 
   // async autoAssignOrder() {
   //   try {
