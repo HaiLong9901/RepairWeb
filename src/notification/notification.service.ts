@@ -13,6 +13,7 @@ export class NotificationService {
         data: {
           userId: dto.userId,
           content: dto.content,
+          title: dto.title,
           isSeen: false,
         },
       });

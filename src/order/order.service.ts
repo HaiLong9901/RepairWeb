@@ -299,6 +299,7 @@ export class OrderService implements OnModuleInit {
       await this.notificationService.createNotification({
         userId: existedOrder.userId,
         content: dto.reason,
+        title: `Đơn dịch vụ ${existedOrder.code} đã được hủy.`,
       });
       return {
         message: 'Cancel order successfully',

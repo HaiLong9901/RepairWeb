@@ -15,4 +15,7 @@ export class NotificationResponseDto {
 
   @ApiProperty()
   createdAt: string;
+
+  @ApiProperty()
+  title: string;
 }

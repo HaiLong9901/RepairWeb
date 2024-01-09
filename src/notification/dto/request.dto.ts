@@ -14,4 +14,8 @@ export class NotificationRequestDto {
   @ApiProperty()
   @IsString()
   content: string;
+
+  @ApiProperty()
+  @IsString()
+  title: string;
 }

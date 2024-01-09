@@ -211,10 +211,12 @@ model Transaction {
 }
 
 model Notification {
-  notificationId BigInt  @id @default(autoincrement())
+  notificationId BigInt   @id @default(autoincrement())
   userId         String
-  isSeen         Boolean @default(false)
+  isSeen         Boolean  @default(false)
   content        String
+  title          String
+  createdAt      DateTime @default(now())
 
   user User @relation(fields: [userId], references: [userId])
 }
