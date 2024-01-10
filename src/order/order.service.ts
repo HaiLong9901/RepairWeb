@@ -956,4 +956,66 @@ export class OrderService implements OnModuleInit {
       throw error;
     }
   }
+
+  async updateOrderStatusByRepairman(
+    orderId: number,
+    status: number,
+    repairmanId: string,
+  ) {
+    if (status !== 0 && status !== 1 && status !== 2) {
+      return new BadRequestException('Unsupported Status');
+    }
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: {
+          orderId: orderId,
+        },
+      });
+
+      if (!order) return new NotFoundException('Order did not exist');
+
+      if (order.repairmanId !== repairmanId)
+        return new ForbiddenException('You do not have permission');
+
+      if (status === 0) {
+        await this.prisma.order.update({
+          where: {
+            orderId: orderId,
+          },
+          data: {
+            repairmanId: null,
+          },
+        });
+
+        return;
+      }
+
+      if (status === 1) {
+        await this.prisma.order.update({
+          where: {
+            orderId: orderId,
+          },
+          data: {
+            status: OrderStatus.ACCEPTED,
+          },
+        });
+        return;
+      }
+      if (status === 2) {
+        await this.prisma.order.update({
+          where: {
+            orderId: orderId,
+          },
+          data: {
+            status: OrderStatus.COMPLETE,
+          },
+        });
+
+        return;
+      }
+      return;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

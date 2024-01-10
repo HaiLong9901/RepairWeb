@@ -144,4 +144,20 @@ export class OrderController {
   getStatistic(@Query() query: any) {
     return this.orderService.getStatistic(query);
   }
+
+  @Patch('/updateOrderStatusByRepairman/:orderId/:status')
+  @UseGuards(RepairmanGuard)
+  @ApiResponse({ status: 204 })
+  updateStatusByRepairman(
+    @Param('orderId', ParseIntPipe) orderId: number,
+    @Param('status', ParseIntPipe) status: number,
+    @Req() req,
+  ) {
+    const { userId } = req.user;
+    return this.orderService.updateOrderStatusByRepairman(
+      orderId,
+      status,
+      userId,
+    );
+  }
 }
