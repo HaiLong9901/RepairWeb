@@ -731,6 +731,15 @@ export class OrderService implements OnModuleInit {
         payload.orderId,
         OrderStatus.CHECKEDIN,
       );
+
+      if (order)
+        return {
+          result: true,
+        };
+
+      return {
+        result: false,
+      };
       return order;
     } catch (error) {
       console.log(error);

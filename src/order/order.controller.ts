@@ -160,4 +160,12 @@ export class OrderController {
       userId,
     );
   }
+
+  @Get('/checkInQr/:code')
+  @UseGuards(RepairmanGuard)
+  @ApiResponse({ status: 204 })
+  checkinQr(@Param('code') code: string, @Req() req) {
+    const { userId } = req.user;
+    return this.orderService.checkInOrder(userId, code);
+  }
 }
