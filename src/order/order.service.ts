@@ -727,20 +727,19 @@ export class OrderService implements OnModuleInit {
         );
       }
 
-      const order = await this.updateOrderStatus(
-        payload.orderId,
-        OrderStatus.CHECKEDIN,
-      );
+      const existedOrder = await this.prisma.order.findUnique({
+        where: {
+          orderId: payload.orderId,
+        },
+      });
 
-      if (order)
-        return {
-          result: true,
-        };
+      if (!existedOrder) return false;
 
-      return {
-        result: false,
-      };
-      return order;
+      if (existedOrder.repairmanId !== repairmanId) return false;
+
+      await this.updateOrderStatus(payload.orderId, OrderStatus.CHECKEDIN);
+
+      return true;
     } catch (error) {
       console.log(error);
       throw error;
