@@ -14,11 +14,7 @@ import {
 import { OrderService } from './order.service';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import {
-  ComponentResponsetDto,
-  DiagnosisResponseDto,
-  OrderReponseDto,
-} from './dto/response.dto';
+import { DiagnosisResponseDto, OrderReponseDto } from './dto/response.dto';
 import {
   CancelOrderRequestDto,
   ComponentRequestDto,
@@ -74,17 +70,17 @@ export class OrderController {
   @Post('createDiagnosis')
   @ApiResponse({ type: DiagnosisResponseDto })
   @UseGuards(RepairmanGuard)
-  createDiagnosis(@Body() dto: DiagnosisRequestDto, @Req() req) {
+  createDiagnosises(@Body() dto: DiagnosisRequestDto[], @Req() req) {
     const { userId } = req.user;
-    return this.orderService.createDiagnosis(dto, userId);
+    return this.orderService.createDiagnosises(dto, userId);
   }
 
   @Post('createComponent')
-  @ApiResponse({ type: ComponentResponsetDto })
+  @ApiResponse({ status: 200 })
   @UseGuards(RepairmanGuard)
-  createComponent(@Body() dto: ComponentRequestDto, @Req() req) {
+  createComponents(@Body() dto: ComponentRequestDto[], @Req() req) {
     const { userId } = req.user;
-    return this.orderService.createComponent(dto, userId);
+    return this.orderService.createComponents(dto, userId);
   }
 
   @Patch('confirmDiagnosis/:diagnosisId')
