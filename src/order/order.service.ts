@@ -12,12 +12,12 @@ import {
   ComponentRequestDto,
   DiagnosisRequestDto,
   OrderRequestDto,
+  UpdateIncurredCost,
   // UpdateOrderStatusRequestDto,
 } from './dto/request.dto';
 import { OrderStatus } from 'src/enum/order-status.enum';
 import { User } from '@prisma/client';
 import { Role } from 'src/enum/role';
-import { formatBigInt } from 'src/utils/formatResponse';
 import { NotificationService } from 'src/notification/notification.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -486,6 +486,11 @@ export class OrderService implements OnModuleInit {
   }
 
   async createDiagnosises(dto: DiagnosisRequestDto[], repairmanId: string) {
+    if (!Array.isArray(dto) || dto.length === 0) {
+      throw new BadRequestException(
+        'Diagnosises list muse have at least one diagnosis',
+      );
+    }
     try {
       const { orderDetailId } = dto[0];
       const isValidDiagnosisList = dto.every(
@@ -515,39 +520,72 @@ export class OrderService implements OnModuleInit {
         );
       }
 
+      const priceList = await Promise.all(
+        dto.map(async (dia) => {
+          const malfunc = await this.prisma.malfunctionCategory.findUnique({
+            where: {
+              malfuncId: dia.malfuncId,
+            },
+          });
+
+          if (!malfunc) return 0;
+          return malfunc.price;
+        }),
+      );
+
+      const addTotal = priceList.reduce((sum: number, val) => {
+        return (sum += parseInt(val.toString()));
+      }, 0);
+
+      const diagnosises = await this.prisma.diagnosis.findMany({
+        where: {
+          orderDetailId,
+        },
+        include: {
+          malfunction: true,
+        },
+      });
+      let subTotal = 0;
+      if (Array.isArray(diagnosises) && diagnosises.length > 0) {
+        subTotal = diagnosises.reduce((sum: number, dia) => {
+          return (sum += parseInt(dia.malfunction.price.toString()));
+        }, 0);
+
+        await this.prisma.order.update({
+          where: {
+            orderId: existedOrderDetail.orderId,
+          },
+          data: {
+            total:
+              parseInt(existedOrderDetail.order.total.toString()) - subTotal,
+          },
+        });
+
+        await this.prisma.diagnosis.deleteMany({
+          where: {
+            orderDetailId,
+          },
+        });
+      }
+
       await this.prisma.diagnosis.createMany({
         data: dto,
       });
 
+      await this.prisma.order.update({
+        where: {
+          orderId: existedOrderDetail.orderId,
+        },
+        data: {
+          total:
+            parseInt(existedOrderDetail.order.total.toString()) +
+            addTotal -
+            subTotal,
+        },
+      });
+
       return { result: 'success' };
     } catch (error) {
-      throw error;
-    }
-  }
-
-  async deleteDiagnosises(diagnosisId: number) {
-    try {
-      const existedDiagnosis = await this.prisma.diagnosis.findUnique({
-        where: {
-          diagnosisId,
-        },
-      });
-
-      if (!existedDiagnosis) {
-        throw new NotFoundException('Diagnosis is not found');
-      }
-
-      await this.prisma.diagnosis.delete({
-        where: {
-          diagnosisId,
-        },
-      });
-
-      return {
-        message: 'Delete diagnosis successfully',
-      };
-    } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -609,6 +647,11 @@ export class OrderService implements OnModuleInit {
   }
 
   async createComponents(dto: ComponentRequestDto[], repairmanId: string) {
+    if (!Array.isArray(dto) || dto.length === 0) {
+      throw new BadRequestException(
+        'Components list must have at least one component',
+      );
+    }
     try {
       const { orderId } = dto[0];
       const existedOrder = await this.prisma.order.findUnique({
@@ -627,6 +670,33 @@ export class OrderService implements OnModuleInit {
         );
       }
 
+      const components = await this.prisma.component.findMany({
+        where: {
+          orderId,
+        },
+      });
+      let subTotal = 0;
+      if (Array.isArray(components) && components.length > 0) {
+        subTotal = components.reduce((sum, comp) => {
+          return (sum += comp.pricePerUnit * comp.quantity);
+        }, 0);
+
+        await this.prisma.order.update({
+          where: {
+            orderId: dto[0].orderId,
+          },
+          data: {
+            total: parseInt(existedOrder.total.toString()) - subTotal,
+          },
+        });
+
+        await this.prisma.component.deleteMany({
+          where: {
+            orderId: dto[0].orderId,
+          },
+        });
+      }
+
       this.prisma.component.createMany({
         data: dto,
       });
@@ -637,7 +707,7 @@ export class OrderService implements OnModuleInit {
 
       await this.prisma.order.update({
         data: {
-          total: total + parseInt(existedOrder.total.toString()),
+          total: total + parseInt(existedOrder.total.toString()) - subTotal,
         },
         where: {
           orderId,
@@ -652,43 +722,35 @@ export class OrderService implements OnModuleInit {
     }
   }
 
-  async updateComponents(dto: ComponentRequestDto[], repairmanId: string) {
+  async updateIncurCost(dto: UpdateIncurredCost, repairmanId: string) {
     try {
-      const components = await this.prisma.component.findMany({
-        where: {
-          orderId: dto[0].orderId,
-        },
-      });
-
+      const { orderId } = dto;
       const existedOrder = await this.prisma.order.findUnique({
         where: {
-          orderId: dto[0].orderId,
+          orderId,
         },
       });
 
-      if (Array.isArray(components) && components.length > 0) {
-        const total = components.reduce((sum, comp) => {
-          return (sum += comp.pricePerUnit * comp.quantity);
-        }, 0);
-
-        await this.prisma.order.update({
-          where: {
-            orderId: dto[0].orderId,
-          },
-          data: {
-            total: parseInt(existedOrder.total.toString()) - total,
-          },
-        });
-
-        await this.prisma.component.deleteMany({
-          where: {
-            orderId: dto[0].orderId,
-          },
-        });
+      if (!existedOrder) {
+        throw new NotFoundException('Order is not found');
       }
-      const res = await this.createComponents(dto, repairmanId);
 
-      return res;
+      if (existedOrder.repairmanId !== repairmanId) {
+        throw new ForbiddenException('You are not permitted');
+      }
+
+      const order = await this.prisma.order.update({
+        where: {
+          orderId,
+        },
+        data: {
+          incurredCost: dto.incurredCost,
+          incurredCostReason: dto.incurredCostReason,
+          total: parseInt(existedOrder.total.toString()) - dto.incurredCost,
+        },
+      });
+
+      return OrderReponseDto.formatDto(order);
     } catch (error) {
       throw error;
     }

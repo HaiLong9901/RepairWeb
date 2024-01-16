@@ -20,6 +20,7 @@ import {
   ComponentRequestDto,
   DiagnosisRequestDto,
   OrderRequestDto,
+  UpdateIncurredCost,
 } from './dto/request.dto';
 import { CustomerGuard } from 'src/auth/guard/customer.guard';
 import { RepairmanGuard } from 'src/auth/guard/repairman.guard';
@@ -67,7 +68,7 @@ export class OrderController {
     return this.orderService.getOrderById(id, req.user);
   }
 
-  @Post('createDiagnosis')
+  @Post('createDiagnosises')
   @ApiResponse({ type: DiagnosisResponseDto })
   @UseGuards(RepairmanGuard)
   createDiagnosises(@Body() dto: DiagnosisRequestDto[], @Req() req) {
@@ -75,12 +76,20 @@ export class OrderController {
     return this.orderService.createDiagnosises(dto, userId);
   }
 
-  @Post('createComponent')
+  @Post('createComponents')
   @ApiResponse({ status: 200 })
   @UseGuards(RepairmanGuard)
   createComponents(@Body() dto: ComponentRequestDto[], @Req() req) {
     const { userId } = req.user;
     return this.orderService.createComponents(dto, userId);
+  }
+
+  @Patch('updateIncurCost')
+  @ApiResponse({ type: OrderReponseDto })
+  @UseGuards(RepairmanGuard)
+  updateIncurCost(@Body() dto: UpdateIncurredCost, @Req() req) {
+    const { userId } = req.user;
+    return this.orderService.updateIncurCost(dto, userId);
   }
 
   @Patch('confirmDiagnosis/:diagnosisId')

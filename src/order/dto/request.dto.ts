@@ -177,3 +177,17 @@ export class CancelOrderRequestDto {
   @IsNumber()
   orderId: number;
 }
+
+export class UpdateIncurredCost {
+  @ApiProperty()
+  @IsPositive()
+  orderId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  incurredCost: number;
+
+  @ApiProperty()
+  @IsString()
+  incurredCostReason: string;
+}
