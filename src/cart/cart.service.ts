@@ -154,6 +154,9 @@ export class CartService {
             include: {
               service: true,
             },
+            orderBy: {
+              createdAt: 'desc',
+            },
           },
         },
       });
