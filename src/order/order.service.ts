@@ -590,62 +590,6 @@ export class OrderService implements OnModuleInit {
     }
   }
 
-  async toggleAcceptDiagnosis(diagnosisId: number, userId: string) {
-    try {
-      const existedDiagnosis = await this.prisma.diagnosis.findUnique({
-        where: {
-          diagnosisId,
-        },
-        include: {
-          orderDetail: {
-            include: {
-              order: true,
-            },
-          },
-          malfunction: true,
-        },
-      });
-
-      if (!existedDiagnosis) {
-        return new ForbiddenException('Diagnosis is not found');
-      }
-
-      if (existedDiagnosis.orderDetail.order.userId !== userId) {
-        throw new ForbiddenException(
-          'You are not permitted to make changes for this order',
-        );
-      }
-
-      const updatedDiagnosis = await this.prisma.diagnosis.update({
-        where: {
-          diagnosisId,
-        },
-        data: {
-          isAccepted: existedDiagnosis.isAccepted ? false : true,
-        },
-      });
-      const orderTotal = existedDiagnosis.orderDetail.order.total;
-      const diagnosisPrice = existedDiagnosis.malfunction.price;
-      await this.prisma.order.update({
-        where: {
-          orderId: existedDiagnosis.orderDetail.order.orderId,
-        },
-        data: {
-          total: updatedDiagnosis.isAccepted
-            ? orderTotal + diagnosisPrice
-            : orderTotal - diagnosisPrice,
-        },
-      });
-
-      return {
-        message: 'Accept/UnAccept successfully',
-      };
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
   async createComponents(dto: ComponentRequestDto[], repairmanId: string) {
     if (!Array.isArray(dto) || dto.length === 0) {
       throw new BadRequestException(

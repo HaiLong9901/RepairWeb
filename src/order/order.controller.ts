@@ -92,17 +92,6 @@ export class OrderController {
     return this.orderService.updateIncurCost(dto, userId);
   }
 
-  @Patch('confirmDiagnosis/:diagnosisId')
-  @ApiResponse({ status: 204 })
-  @UseGuards(CustomerGuard)
-  confirmDiagnosis(
-    @Param('diagnosisId', ParseIntPipe) diagnosisId: number,
-    @Req() req,
-  ) {
-    const { userId } = req.user;
-    return this.orderService.toggleAcceptDiagnosis(diagnosisId, userId);
-  }
-
   @Patch('cancelOrder')
   @ApiResponse({ status: 204 })
   // @UseGuards(CustomerGuard)
