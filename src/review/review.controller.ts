@@ -9,9 +9,10 @@ import {
   Patch,
   Delete,
   Body,
+  Query,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateReviewResponseDto, GetReviewResponseDto } from './dto/response';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { CustomerGuard } from 'src/auth/guard/customer.guard';
@@ -60,7 +61,9 @@ export class ReviewController {
   @Get('getAll')
   @UseGuards(JwtGuard, StaffGuard)
   @ApiResponse({ type: GetReviewResponseDto })
-  getAllReview() {
-    return this.reviewService.getAllReviews();
+  @ApiQuery({ name: 'serviceId', required: false })
+  @ApiQuery({ name: 'rate', required: false })
+  getAllReview(@Query() query: any) {
+    return this.reviewService.getAllReviews(query);
   }
 }

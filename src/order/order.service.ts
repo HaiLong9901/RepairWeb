@@ -227,6 +227,7 @@ export class OrderService implements OnModuleInit {
       }
 
       const skills = [];
+      let total = 0;
       Promise.all(
         dto.orderDetail.map(async (detail) => {
           const service = await this.prisma.service.findUnique({
@@ -238,9 +239,18 @@ export class OrderService implements OnModuleInit {
           if (service && service.skillId) {
             skills.push(service.skillId);
           }
+
+          if (service.type === 0) total += parseInt(service.price.toString());
         }),
       );
-
+      await this.prisma.order.update({
+        where: {
+          orderId: order.orderId,
+        },
+        data: {
+          total: total,
+        },
+      });
       const address = await this.prisma.userAddress.findUnique({
         where: {
           addressId: dto.addressId,

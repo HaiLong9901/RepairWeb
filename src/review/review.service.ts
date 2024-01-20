@@ -157,8 +157,16 @@ export class ReviewService {
     }
   }
 
-  async getAllReviews() {
+  async getAllReviews(query: any) {
+    const { serviceId, rate } = query;
     try {
+      const querySelect: any = {};
+      if (serviceId) {
+        querySelect.serviceId = parseInt(serviceId);
+      }
+      if (rate) {
+        querySelect.rate = parseInt(rate);
+      }
       const reviews = await this.prisma.review.findMany({
         orderBy: {
           updatedAt: 'desc',
@@ -175,7 +183,11 @@ export class ReviewService {
             },
           },
         },
+        where: {
+          ...querySelect,
+        },
       });
+      // console.log({ reviews });
       return reviews.map((val) => formatBigInt(val));
     } catch (error) {
       throw error;
