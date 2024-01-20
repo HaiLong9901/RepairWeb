@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
-  IsBoolean,
   IsNumber,
   IsOptional,
   IsPositive,
@@ -123,10 +122,6 @@ export class DiagnosisRequestDto {
   @ApiProperty()
   @IsNumber()
   malfuncId: number;
-
-  @ApiProperty()
-  @IsBoolean()
-  isAccept: boolean;
 }
 
 export class ComponentRequestDto {

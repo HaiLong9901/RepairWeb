@@ -22,7 +22,7 @@ export class TransactionController {
       amount,
       ipAddr,
     );
-    return res.redirect(secureUrl);
+    return res.json(secureUrl);
   }
 
   @Post('callback')

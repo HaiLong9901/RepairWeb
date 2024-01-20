@@ -181,10 +181,9 @@ model OrderDetail {
 }
 
 model Diagnosis {
-  diagnosisId   BigInt  @id @default(autoincrement())
+  diagnosisId   BigInt @id @default(autoincrement())
   orderDetailId BigInt
   malfuncId     Int
-  isAccepted    Boolean @default(true)
 
   orderDetail OrderDetail         @relation(fields: [orderDetailId], references: [orderDetailId])
   malfunction MalfunctionCategory @relation(fields: [malfuncId], references: [malfuncId])

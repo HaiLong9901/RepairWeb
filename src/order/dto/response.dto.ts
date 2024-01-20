@@ -156,15 +156,11 @@ export class DiagnosisResponseDto {
   @ApiProperty()
   malfuncId: number;
 
-  @ApiProperty()
-  isAccepted: boolean;
-
   public static formatDto = (dto: Diagnosis) => {
     return {
       diagnosisId: dto.diagnosisId.toString(),
       orderDetailId: dto.orderDetailId.toString(),
       malfuncId: dto.malfuncId.toString(),
-      isAccepted: dto.isAccepted,
     };
   };
 }

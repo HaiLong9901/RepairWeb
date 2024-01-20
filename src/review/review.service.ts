@@ -6,6 +6,8 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateReviewRequestDto, UpdateReviewRequestDto } from './dto/request';
 import { formatBigInt } from 'src/utils/formatResponse';
+import { User } from '@prisma/client';
+import { Role } from 'src/enum/role';
 
 @Injectable()
 export class ReviewService {
@@ -94,7 +96,7 @@ export class ReviewService {
     }
   }
 
-  async deleteReview(reviewId: number, userId: string) {
+  async deleteReview(reviewId: number, user: User) {
     try {
       const existedReview = await this.prisma.review.findUnique({
         where: {
@@ -106,7 +108,10 @@ export class ReviewService {
         return new NotFoundException('Review is not found');
       }
 
-      if (existedReview.userId !== userId) {
+      if (
+        existedReview.userId !== user.userId &&
+        user.role === Role.ROLE_USER
+      ) {
         return new ForbiddenException(
           'You are not permitted to delete this review',
         );
@@ -146,6 +151,31 @@ export class ReviewService {
       });
 
       if (reviews.length === 0) return reviews;
+      return reviews.map((val) => formatBigInt(val));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllReviews() {
+    try {
+      const reviews = await this.prisma.review.findMany({
+        orderBy: {
+          updatedAt: 'desc',
+        },
+        include: {
+          user: {
+            select: {
+              accountName: true,
+            },
+          },
+          service: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
       return reviews.map((val) => formatBigInt(val));
     } catch (error) {
       throw error;

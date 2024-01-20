@@ -17,7 +17,7 @@ export class TransactionService {
     amount: number,
     ipAddress: string,
   ): Promise<string> {
-    const returnUrl = 'http://localhost:3000/transaction/callback';
+    const returnUrl = 'http://localhost:5000/transaction/callback';
 
     const params = {
       vnp_Amount: amount * 100,
@@ -37,7 +37,7 @@ export class TransactionService {
 
     const secureUrl = this.vnpay.buildPaymentUrl(params);
 
-    // console.log({ secureUrl });
+    console.log({ secureUrl });
     return secureUrl;
   }
 

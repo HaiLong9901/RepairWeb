@@ -16,6 +16,7 @@ import { CreateReviewResponseDto, GetReviewResponseDto } from './dto/response';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { CustomerGuard } from 'src/auth/guard/customer.guard';
 import { CreateReviewRequestDto, UpdateReviewRequestDto } from './dto/request';
+import { StaffGuard } from 'src/auth/guard/staff.guard';
 
 @Controller('review')
 @ApiTags('Review')
@@ -40,12 +41,12 @@ export class ReviewController {
   @UseGuards(JwtGuard, CustomerGuard)
   @ApiResponse({ type: CreateReviewResponseDto })
   updateReview(@Body() dto: UpdateReviewRequestDto, @Req() req) {
-    const { userId } = req.user;
-    return this.reviewService.updateReview(dto, userId);
+    const user = req.user;
+    return this.reviewService.updateReview(dto, user);
   }
 
   @Delete('delete/:id')
-  @UseGuards(JwtGuard, CustomerGuard)
+  @UseGuards(JwtGuard)
   @ApiResponse({
     type: class Message {
       message: string;
@@ -54,5 +55,12 @@ export class ReviewController {
   deleteReview(@Param('id', ParseIntPipe) id: number, @Req() req) {
     const { userId } = req.user;
     return this.reviewService.deleteReview(id, userId);
+  }
+
+  @Get('getAll')
+  @UseGuards(JwtGuard, StaffGuard)
+  @ApiResponse({ type: GetReviewResponseDto })
+  getAllReview() {
+    return this.reviewService.getAllReviews();
   }
 }
