@@ -31,7 +31,6 @@ export class SystemConfigService {
         },
       });
 
-      // OrderService.intervalDur = dto.assignOrderInterval * 60000;
       this.orderService.updateInterval(dto.assignOrderInterval * 60000);
 
       return updatedConfig;

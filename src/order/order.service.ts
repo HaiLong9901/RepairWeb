@@ -4,7 +4,6 @@ import {
   Injectable,
   NotFoundException,
   OnModuleInit,
-  // UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -13,7 +12,6 @@ import {
   DiagnosisRequestDto,
   OrderRequestDto,
   UpdateIncurredCost,
-  // UpdateOrderStatusRequestDto,
 } from './dto/request.dto';
 import { OrderStatus } from 'src/enum/order-status.enum';
 import { User } from '@prisma/client';
@@ -36,6 +34,7 @@ enum StatisticType {
 @Injectable()
 export class OrderService implements OnModuleInit {
   public static intervalDur = 20000;
+  public static assignRadius = 5;
   private destroy$ = new Subject<void>();
   private interval$ = new Subject<number>();
   constructor(
@@ -52,7 +51,14 @@ export class OrderService implements OnModuleInit {
     setTimeout(async () => {
       await this.getAllPendingOrderToAssign();
     }, 5000);
-    setTimeout(() => {
+    setTimeout(async () => {
+      const configs = await this.prisma.systemConfig.findMany();
+      OrderService.intervalDur = configs[0]
+        ? configs[0].assignOrderInterval * 60000
+        : 20000;
+      OrderService.assignRadius = configs[0]
+        ? configs[0].distanceToAssignOrder
+        : 5;
       this.updateInterval(OrderService.intervalDur);
     }, 5000);
   }
@@ -851,104 +857,6 @@ export class OrderService implements OnModuleInit {
       throw error;
     }
   }
-
-  // async autoAssignOrder() {
-  //   try {
-  //     const orderList = await this.getAllPendingOrderToAssign();
-  //     const repairmans = await this.prisma.user.findMany({
-  //       where: {
-  //         NOT: {
-  //           status: UserStatus.BUSY,
-  //         },
-  //         role: Role.ROLE_REPAIRMAN,
-  //       },
-  //       include: {
-  //         address: true,
-  //       },
-  //     });
-  //     if (orderList.length === 0) return;
-  //     orderList.forEach(async (order) => {
-  //       if (
-  //         order.address &&
-  //         order.address.latitude &&
-  //         order.address.longitude
-  //       ) {
-  //         const suitableRepairmans = repairmans.filter((repairman) => {
-  //           if (
-  //             !repairman.address ||
-  //             !repairman.address[0].latitude ||
-  //             !repairman.address[0].longitude
-  //           )
-  //             return false;
-  //           const repairmanCordinate: Coordinate = {
-  //             latitude: repairman.address[0].latitude,
-  //             longitude: repairman.address[0].longitude,
-  //           };
-
-  //           const orderCordinate: Coordinate = {
-  //             latitude: order.address.latitude,
-  //             longitude: order.address.longitude,
-  //           };
-
-  //           return getDistance(repairmanCordinate, orderCordinate) < 5;
-  //         });
-
-  //         if (
-  //           Array.isArray(suitableRepairmans) &&
-  //           suitableRepairmans.length > 0
-  //         ) {
-  //           suitableRepairmans.forEach(
-  //             async (rpm) =>
-  //               await this.assignOrder(
-  //                 parseInt(order.orderId.toString()),
-  //                 rpm.userId,
-  //               ),
-  //           );
-  //         }
-  //       }
-  //     });
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
-  // async statisticOrderByDay(from: string, to: string) {
-  //   try {
-  //     const orders = await this.prisma.order.findMany({
-  //       where: {
-  //         updatedAt: {
-  //           gte: new Date(from),
-  //           lte: new Date(to),
-  //         },
-  //       },
-  //       include: {
-  //         repairman: true,
-  //         orderDetails: {
-  //           include: {
-  //             service: true,
-  //           },
-  //         },
-  //       },
-  //     });
-  //     const ordersFilterByStatus = Object.keys(OrderStatus).map((key) => {
-  //       const orderList = orders.filter(
-  //         (order) => order.status === OrderStatus[`${key}`],
-  //       );
-  //       const orderRes = {
-  //         status: key,
-  //         orderList,
-  //       };
-
-  //       return orderRes;
-  //     });
-
-  //     const dailyOutcomeList = orders
-  //       .filter((order) => order.status === OrderStatus.COMPLETE)
-  //       .map((order) => {
-
-  //       });
-  //   } catch (error) {}
-  // }
 
   async createMultiOrders(dto: OrderRequestDto[]) {
     try {
