@@ -121,6 +121,9 @@ export class OrderReponseDto {
   @ApiProperty()
   user?: User;
 
+  @ApiProperty()
+  total?: number;
+
   public static formatDto = (dto: any) => {
     return {
       orderId: dto.orderId.toString(),
@@ -142,6 +145,7 @@ export class OrderReponseDto {
       address: dto.address,
       repairman: dto.repairman,
       user: dto.user,
+      total: dto.total.toString(),
     };
   };
 }
