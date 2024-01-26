@@ -635,6 +635,7 @@ export class OrderService implements OnModuleInit {
           orderId,
         },
       });
+      console.log({ components });
       let subTotal = 0;
       if (Array.isArray(components) && components.length > 0) {
         subTotal = components.reduce((sum, comp) => {
@@ -657,7 +658,7 @@ export class OrderService implements OnModuleInit {
         });
       }
 
-      this.prisma.component.createMany({
+      await this.prisma.component.createMany({
         data: dto,
       });
 

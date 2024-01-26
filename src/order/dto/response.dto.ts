@@ -145,7 +145,7 @@ export class OrderReponseDto {
       address: dto.address,
       repairman: dto.repairman,
       user: dto.user,
-      total: dto.total.toString(),
+      total: dto.total ? dto.total.toString() : 0,
     };
   };
 }
