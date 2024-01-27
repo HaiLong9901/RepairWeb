@@ -190,6 +190,7 @@ export class OrderService implements OnModuleInit {
   }
 
   async createOrder(dto: OrderRequestDto, userId: string) {
+    console.log(JSON.stringify(dto));
     try {
       const order = await this.prisma.order.create({
         data: {

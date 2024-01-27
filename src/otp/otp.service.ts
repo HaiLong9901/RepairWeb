@@ -60,12 +60,11 @@ export class OtpService {
           status: UserStatus.ACTIVE,
         },
       });
-      const existedCart = this.prisma.cart.findUnique({
+      const existedCart = await this.prisma.cart.findUnique({
         where: {
           userId,
         },
       });
-
       if (!existedCart) {
         await this.cartService.createCart(userId);
       }
