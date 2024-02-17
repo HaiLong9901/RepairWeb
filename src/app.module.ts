@@ -17,7 +17,6 @@ import { NotificationModule } from './notification/notification.module';
 import { MailModule } from './mail/mail.module';
 import { CartModule } from './cart/cart.module';
 import { SystemConfigModule } from './system-config/system-config.module';
-import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -35,7 +34,6 @@ import { TransactionModule } from './transaction/transaction.module';
     MailModule,
     CartModule,
     SystemConfigModule,
-    TransactionModule,
   ],
   controllers: [AppController, ServiceController],
   providers: [AppService, ServiceService],
