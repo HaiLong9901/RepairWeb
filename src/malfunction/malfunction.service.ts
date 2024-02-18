@@ -37,7 +37,7 @@ export class MalfunctionService {
       const existedMalfunction =
         await this.prisma.malfunctionCategory.findUnique({
           where: {
-            malfuncId: dto.malFuncId,
+            malfuncId: dto.malfuncId,
           },
         });
 
@@ -52,7 +52,7 @@ export class MalfunctionService {
           serviceId: dto.serviceId,
         },
         where: {
-          malfuncId: dto.malFuncId,
+          malfuncId: dto.malfuncId,
         },
       });
 

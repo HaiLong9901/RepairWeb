@@ -5,7 +5,7 @@ export class MalfunctionRequestDto {
   @ApiProperty()
   @IsOptional()
   @IsNumber()
-  malFuncId?: number;
+  malfuncId: number;
 
   @ApiProperty()
   @IsString()
@@ -18,4 +18,8 @@ export class MalfunctionRequestDto {
   @ApiProperty()
   @IsPositive()
   serviceId: number;
+
+  @ApiProperty()
+  @IsOptional()
+  isActive?: boolean;
 }

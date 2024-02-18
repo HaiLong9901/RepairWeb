@@ -3,7 +3,7 @@ import { Service } from '@prisma/client';
 
 export class MalfunctionResponseDto {
   @ApiProperty()
-  malFuncId: number;
+  malfuncId: number;
 
   @ApiProperty()
   name: string;
@@ -16,4 +16,7 @@ export class MalfunctionResponseDto {
 
   @ApiProperty()
   service: Service;
+
+  @ApiProperty()
+  isActive: boolean;
 }

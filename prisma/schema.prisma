@@ -136,10 +136,11 @@ model Service {
 }
 
 model MalfunctionCategory {
-  malfuncId Int    @id @default(autoincrement())
+  malfuncId Int     @id @default(autoincrement())
   name      String
   price     BigInt
   serviceId Int
+  isActive  Boolean @default(true)
 
   service   Service     @relation(fields: [serviceId], references: [serviceId])
   diagnosis Diagnosis[]
