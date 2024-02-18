@@ -50,6 +50,7 @@ export class MalfunctionService {
           name: dto.name,
           price: dto.price,
           serviceId: dto.serviceId,
+          isActive: dto.isActive,
         },
         where: {
           malfuncId: dto.malfuncId,

@@ -89,7 +89,11 @@ export class ServiceService {
           serviceId,
         },
         include: {
-          malfunctions: true,
+          malfunctions: {
+            where: {
+              isActive: true,
+            },
+          },
           skill: true,
         },
       });
