@@ -61,6 +61,12 @@ export class OrderService implements OnModuleInit {
         : 5;
       this.updateInterval(OrderService.intervalDur);
     }, 5000);
+    setInterval(
+      async () => {
+        await this.checkOrders();
+      },
+      1000 * 60 * 5,
+    );
   }
 
   private startInterval(): void {
@@ -998,6 +1004,78 @@ export class OrderService implements OnModuleInit {
         return;
       }
       return;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async checkOrders() {
+    try {
+      const currentTime = new Date();
+      const thirtyMinutesAgo = new Date(currentTime.getTime() - 5 * 60000);
+      const pendingOrders = await this.prisma.order.findMany({
+        where: {
+          status: OrderStatus.PENDING,
+          NOT: {
+            repairmanId: null,
+          },
+          updatedAt: {
+            gte: thirtyMinutesAgo,
+          },
+        },
+        include: {
+          orderDetails: {
+            include: {
+              service: true,
+            },
+          },
+          address: true,
+        },
+      });
+
+      if (Array.isArray(pendingOrders) && pendingOrders.length > 0) {
+        await Promise.all(
+          pendingOrders.map(async (order) => {
+            await this.prisma.user.update({
+              where: {
+                userId: order.repairmanId,
+              },
+              data: {
+                status: UserStatus.BUSY,
+              },
+            });
+            await this.prisma.order.update({
+              where: {
+                orderId: order.orderId,
+              },
+              data: {
+                repairmanId: null,
+              },
+            });
+            if (
+              order.address.latitude !== null &&
+              order.address.latitude !== undefined
+            ) {
+              const orderData: {
+                orderId: string;
+                skills: number[];
+                coordinate: Coordinate;
+              } = {
+                orderId: order.orderId.toString(),
+                skills: order.orderDetails.map(
+                  (detail) => detail.service.skillId,
+                ),
+                coordinate: {
+                  latitude: order.address.latitude,
+                  longitude: order.address.longitude,
+                },
+              };
+              console.log('reassign order: ', order.orderId);
+              this.addOrderToQueue(orderData);
+            }
+          }),
+        );
+      }
     } catch (error) {
       throw error;
     }
