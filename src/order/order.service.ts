@@ -25,6 +25,7 @@ import { Coordinate, getDistance } from 'src/utils/getDistance';
 import { Queue } from './Queue';
 import { interval, Subject } from 'rxjs';
 import { takeUntil, switchMap, delay } from 'rxjs/operators';
+import { MailService } from 'src/mail/mail.service';
 
 enum StatisticType {
   Outcome = 'outcome',
@@ -43,6 +44,7 @@ export class OrderService implements OnModuleInit {
     private jwtService: JwtService,
     private config: ConfigService,
     private orderQueue: Queue,
+    private mailService: MailService,
   ) {}
 
   onModuleInit() {
@@ -726,7 +728,7 @@ export class OrderService implements OnModuleInit {
 
   async assignOrder(orderId: number, repairmanId: string) {
     try {
-      await this.prisma.order.update({
+      const order = await this.prisma.order.update({
         where: {
           orderId,
         },
@@ -734,7 +736,12 @@ export class OrderService implements OnModuleInit {
           repairmanId,
         },
       });
-
+      const user = await this.prisma.user.findUnique({
+        where: {
+          userId: repairmanId,
+        },
+      });
+      await this.mailService.notifyAssigningOrderToRepairman(user, order.code);
       return {
         message: 'Assign repairman for order successfully',
       };
@@ -1073,6 +1080,38 @@ export class OrderService implements OnModuleInit {
               console.log('reassign order: ', order.orderId);
               this.addOrderToQueue(orderData);
             }
+          }),
+        );
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async autoCancelExpiredOrders() {
+    try {
+      const currentDate = new Date();
+      const expiredOrders = await this.prisma.order.findMany({
+        where: {
+          status: OrderStatus.CHECKEDIN,
+          expectedDate: {
+            lt: currentDate.toISOString(),
+          },
+        },
+      });
+
+      if (Array.isArray(expiredOrders) && expiredOrders.length > 0) {
+        await Promise.all(
+          expiredOrders.map(async (order) => {
+            await this.prisma.order.update({
+              where: {
+                orderId: order.orderId,
+              },
+              data: {
+                status: OrderStatus.REJECTED,
+                incurredCostReason: 'Quá ngày sửa chữa',
+              },
+            });
           }),
         );
       }

@@ -23,14 +23,32 @@ export class MailService {
     }
   }
 
-  async confirmOder(user: User) {
+  async confirmOder(user: User, orderId: string) {
     try {
       await this.mailerService.sendMail({
         to: user.email,
-        subject: 'Chào mừng đến với NiceRepair, đây là mã xác thực của bạn',
-        template: './confirmation.hbs',
+        subject: `Thông báo xác nhận đơn đặt dịch vụ`,
+        template: './confirmOrder.hbs',
         context: {
           name: user.firstName,
+          orderId: orderId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async notifyAssigningOrderToRepairman(user: User, orderId: string) {
+    try {
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: `Giao đơn đặt dịch vụ mã ${orderId}`,
+        template: './assigningOrder.hbs',
+        context: {
+          name: user.firstName,
+          orderId: orderId,
         },
       });
     } catch (error) {

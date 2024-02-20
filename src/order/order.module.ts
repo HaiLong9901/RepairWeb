@@ -9,11 +9,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { BullModule } from '@nestjs/bull';
 import { OrderProcessor } from './order.processor';
 import { Queue } from './Queue';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   providers: [OrderService, OrderGateway, OrderProcessor, Queue],
   controllers: [OrderController],
   imports: [
+    MailModule,
     NotificationModule,
     UserModule,
     AuthModule,
