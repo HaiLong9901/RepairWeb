@@ -18,7 +18,7 @@ export const getDistance = (user1: Coordinate, user2: Coordinate) => {
   const a =
     Math.sin(dlat / 2) ** 2 +
     Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dlon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const c = 2 * Math.asin(Math.sqrt(a));
 
   const distance = EarthRadius * c;
 
