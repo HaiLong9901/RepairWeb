@@ -22,10 +22,10 @@ export class MalfunctionResponseDto {
 
   public static formatDto(dto: any) {
     return {
-      name: dto.name,
-      price: dto.price.toString(),
-      serviceId: dto.serviceId,
-      isActive: dto.isActive,
+      name: dto?.name,
+      price: dto?.price.toString(),
+      serviceId: dto?.serviceId,
+      isActive: dto?.isActive,
     };
   }
 }

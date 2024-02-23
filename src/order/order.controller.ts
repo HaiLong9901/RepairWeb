@@ -40,6 +40,7 @@ export class OrderController {
   @ApiQuery({ name: 'repairmanId', required: false })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'type', required: false })
   getAllOrders(@Query() query) {
     return this.orderService.getAllOrder(query);
   }

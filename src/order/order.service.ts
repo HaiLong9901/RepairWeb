@@ -366,7 +366,7 @@ export class OrderService implements OnModuleInit {
   }
 
   async getAllOrder(query: any) {
-    const { from, to, status, repairmanId, page, limit } = query;
+    const { from, to, status, repairmanId, page, limit, type } = query;
     let searchTime = {};
     if (from) {
       searchTime = {
@@ -448,6 +448,9 @@ export class OrderService implements OnModuleInit {
         },
         ...pagination,
       });
+      if (type === 'config') {
+        return orders.map((order) => OrderReponseDto.formatDto(order));
+      }
       const orderList = orders.filter((order) => {
         const queueData = this.orderQueue.getQueue();
         const isInQueue = queueData.some((od) => {

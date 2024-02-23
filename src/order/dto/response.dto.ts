@@ -133,9 +133,9 @@ export class OrderReponseDto {
       expectedDate: dto.expectedDate,
       repairmanId: dto.repairmanId,
       addressId: dto.addressId,
-      incurredCost: dto.incurredCost,
+      incurredCost: dto.incurredCost?.toString(),
       incurredCostReason: dto.incurredCostReason,
-      orderDetails: dto.orderDetails.map((detail) =>
+      orderDetails: dto.orderDetails?.map((detail) =>
         OrderDetailReponseDto.formatDto(detail),
       ),
       components: dto.components?.map((component) =>
