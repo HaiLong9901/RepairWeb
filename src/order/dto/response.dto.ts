@@ -6,6 +6,7 @@ import {
   User,
   UserAddress,
 } from '@prisma/client';
+import { MalfunctionResponseDto } from 'src/malfunction/dto/response.dto';
 import { formatBigInt } from 'src/utils/formatResponse';
 
 export class OrderDetailReponseDto {
@@ -160,11 +161,15 @@ export class DiagnosisResponseDto {
   @ApiProperty()
   malfuncId: number;
 
-  public static formatDto = (dto: Diagnosis) => {
+  @ApiProperty()
+  malfunction: any;
+
+  public static formatDto = (dto: any) => {
     return {
       diagnosisId: dto.diagnosisId.toString(),
       orderDetailId: dto.orderDetailId.toString(),
       malfuncId: dto.malfuncId.toString(),
+      malfunction: MalfunctionResponseDto.formatDto(dto.malfunction),
     };
   };
 }

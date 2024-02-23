@@ -130,7 +130,7 @@ export class OrderController {
     return this.orderService.createMultiOrders(dto);
   }
 
-  @Get('/statistic')
+  @Post('/statistic')
   @UseGuards(StaffGuard)
   @ApiQuery({ name: 'from', required: true })
   @ApiQuery({ name: 'to', required: true })
@@ -161,5 +161,11 @@ export class OrderController {
   checkinQr(@Param('code') code: string, @Req() req) {
     const { userId } = req.user;
     return this.orderService.checkInOrder(userId, code);
+  }
+
+  @Post('/dailyStatistic')
+  @UseGuards(StaffGuard)
+  getDailyStatistic() {
+    return this.orderService.getDailyStatistic();
   }
 }

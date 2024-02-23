@@ -19,4 +19,13 @@ export class MalfunctionResponseDto {
 
   @ApiProperty()
   isActive: boolean;
+
+  public static formatDto(dto: any) {
+    return {
+      name: dto.name,
+      price: dto.price.toString(),
+      serviceId: dto.serviceId,
+      isActive: dto.isActive,
+    };
+  }
 }

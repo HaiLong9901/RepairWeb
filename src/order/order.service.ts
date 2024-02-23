@@ -27,11 +27,6 @@ import { interval, Subject } from 'rxjs';
 import { takeUntil, switchMap, delay } from 'rxjs/operators';
 import { MailService } from 'src/mail/mail.service';
 
-enum StatisticType {
-  Outcome = 'outcome',
-  Service = 'service',
-  Order = 'order',
-}
 @Injectable()
 export class OrderService implements OnModuleInit {
   public static intervalDur = 20000;
@@ -67,7 +62,7 @@ export class OrderService implements OnModuleInit {
       async () => {
         await this.checkOrders();
       },
-      1000 * 60 * 5,
+      1000 * 60 * 60,
     );
   }
 
@@ -280,11 +275,13 @@ export class OrderService implements OnModuleInit {
           longitude: address.longitude,
         };
       }
-      this.addOrderToQueue({
-        orderId: order.orderId.toString(),
-        skills,
-        coordinate,
-      });
+      if (address.latitude !== null) {
+        this.addOrderToQueue({
+          orderId: order.orderId.toString(),
+          skills,
+          coordinate,
+        });
+      }
       return {
         message: 'create successful',
         orderId: order.orderId.toLocaleString(),
@@ -343,7 +340,11 @@ export class OrderService implements OnModuleInit {
             include: {
               media: true,
               service: true,
-              diagnosis: true,
+              diagnosis: {
+                include: {
+                  malfunction: true,
+                },
+              },
             },
           },
           user: true,
@@ -447,8 +448,15 @@ export class OrderService implements OnModuleInit {
         },
         ...pagination,
       });
-
-      return orders.map((order) => OrderReponseDto.formatDto(order));
+      const orderList = orders.filter((order) => {
+        const queueData = this.orderQueue.getQueue();
+        const isInQueue = queueData.some((od) => {
+          return od.orderId === order.orderId.toString();
+        });
+        if (!isInQueue) return true;
+        return false;
+      });
+      return orderList.map((order) => OrderReponseDto.formatDto(order));
     } catch (error) {
       throw error;
     }
@@ -864,7 +872,7 @@ export class OrderService implements OnModuleInit {
                 : null,
           };
 
-          this.addOrderToQueue(data);
+          if (order.address.latitude !== null) this.addOrderToQueue(data);
         });
       }
       return orders;
@@ -887,68 +895,6 @@ export class OrderService implements OnModuleInit {
       return {
         orderIdList,
       };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getStatistic(query: any) {
-    const { from, to, type } = query;
-    try {
-      if (!(type in StatisticType)) {
-        return new BadRequestException('Loại thồng kê không tồn tại');
-      }
-
-      const fromDate = new Date(from);
-      const toDate = new Date(to);
-
-      if (fromDate < toDate) {
-        throw new BadRequestException('Ngày thống kê không hợp lệ');
-      }
-
-      const statistic: any = [];
-      while (fromDate <= toDate) {
-        const current = fromDate;
-        const nextDate = new Date(
-          `${current.getFullYear()}-${current.getMonth()}-${current.setDate(
-            current.getDate() + 1,
-          )}`,
-        );
-        const orders = await this.prisma.order.findMany({
-          where: {
-            AND: [
-              {
-                updatedAt: {
-                  gte: current,
-                },
-              },
-              {
-                updatedAt: {
-                  lt: nextDate,
-                },
-              },
-            ],
-            status: OrderStatus.COMPLETE,
-          },
-          include: {
-            orderDetails: {
-              include: {
-                service: true,
-              },
-            },
-            repairman: true,
-          },
-        });
-
-        const value = {
-          date: current.toLocaleDateString(),
-          data: orders,
-        };
-
-        statistic.push(value);
-      }
-
-      return statistic;
     } catch (error) {
       throw error;
     }
@@ -1115,6 +1061,267 @@ export class OrderService implements OnModuleInit {
           }),
         );
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getStatisticByDate(date: Date) {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    try {
+      const orders = await this.prisma.order.findMany({
+        where: {
+          updatedAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        include: {
+          orderDetails: {
+            include: {
+              service: true,
+            },
+          },
+        },
+      });
+
+      let total = 0;
+      if (Array.isArray(orders)) {
+        const fulfilledOrders = orders.filter(
+          (order) => order.status === OrderStatus.COMPLETE,
+        );
+        if (fulfilledOrders.length === 0) total = 0;
+        else {
+          total = fulfilledOrders.reduce((sum, order) => {
+            if (order.total !== null)
+              return (sum += parseInt(order.total.toString()));
+            else return sum;
+          }, 0);
+        }
+      }
+
+      const ordersByStatus = {
+        [`${OrderStatus.PENDING}`]: 0,
+        [`${OrderStatus.ACCEPTED}`]: 0,
+        [`${OrderStatus.CHECKEDIN}`]: 0,
+        [`${OrderStatus.COMPLETE}`]: 0,
+        [`${OrderStatus.REJECTED}`]: 0,
+      };
+
+      orders.forEach((order) => {
+        ordersByStatus[`${order.status}`] =
+          ordersByStatus[`${order.status}`] + 1;
+      });
+
+      return {
+        total,
+        ordersByStatus,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getStatisticByMonth(month: number, year: number) {
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
+    const services = {};
+    console.log({ month, year });
+    try {
+      const orders = await this.prisma.order.findMany({
+        where: {
+          updatedAt: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+        include: {
+          orderDetails: {
+            include: {
+              service: true,
+            },
+          },
+        },
+      });
+
+      let total = 0;
+      if (Array.isArray(orders)) {
+        const fulfilledOrders = orders.filter(
+          (order) => order.status === OrderStatus.COMPLETE,
+        );
+        if (fulfilledOrders.length === 0) total = 0;
+        else {
+          total = fulfilledOrders.reduce((sum, order) => {
+            if (order.total !== null)
+              return (sum += parseInt(order.total.toString()));
+            else return sum;
+          }, 0);
+          fulfilledOrders.forEach((order) => {
+            order.orderDetails.map((detail) => {
+              if (!services[`${detail.serviceId}`]) {
+                services[`${detail.serviceId}`] = {};
+                services[`${detail.serviceId}`].name = detail.service.name;
+                services[`${detail.serviceId}`].time = 0;
+              } else {
+                services[`${detail.serviceId}`].time =
+                  services[`${detail.serviceId}`].time + 1;
+              }
+            });
+          });
+        }
+      }
+
+      const ordersByStatus = {
+        [`${OrderStatus.PENDING}`]: 0,
+        [`${OrderStatus.ACCEPTED}`]: 0,
+        [`${OrderStatus.CHECKEDIN}`]: 0,
+        [`${OrderStatus.COMPLETE}`]: 0,
+        [`${OrderStatus.REJECTED}`]: 0,
+      };
+
+      orders.forEach((order) => {
+        ordersByStatus[`${order.status}`] =
+          ordersByStatus[`${order.status}`] + 1;
+      });
+
+      return {
+        total,
+        ordersByStatus,
+        services,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getStatistic(query: any) {
+    const { from, to, type } = query;
+    const formatDate = (date: Date) => {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      return `${day}/${month}`;
+    };
+    const formatMonth = (month: number, year: number) => {
+      const monthStr = (month + 1).toString().padStart(2, '0');
+      const yearStr = year.toString().slice(-2);
+      return `${monthStr}/20${yearStr}`;
+    };
+    try {
+      const result = {};
+      if (type === 'day') {
+        const startDate = new Date(from);
+        const endDate = new Date(to);
+        while (startDate <= endDate) {
+          const data = await this.getStatisticByDate(startDate);
+          result[`${formatDate(startDate)}`] = data;
+          startDate.setDate(startDate.getDate() + 1);
+        }
+      }
+
+      if (type === 'month') {
+        const [startYear, startMonth] = from
+          .split('-')
+          .map((val) => parseInt(val));
+        const [endYear, endMonth] = to.split('-').map((val) => parseInt(val));
+        let currentMonth = startMonth;
+        let currentYear = startYear;
+        while (!(currentMonth === endMonth && currentYear === endYear)) {
+          const data = await this.getStatisticByMonth(
+            currentMonth,
+            currentYear,
+          );
+          result[`${formatMonth(currentMonth, currentYear)}`] = data;
+          currentMonth++;
+          if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+          }
+        }
+      }
+
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getStatisticUser(date: Date) {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    try {
+      const customers = await this.prisma.user.findMany({
+        where: {
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+          role: Role.ROLE_USER,
+        },
+      });
+      const repairmans = await this.prisma.user.findMany({
+        where: {
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+          role: Role.ROLE_REPAIRMAN,
+        },
+      });
+      const staffs = await this.prisma.user.findMany({
+        where: {
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+          OR: [
+            {
+              role: Role.ROLE_ADMIN,
+            },
+            {
+              role: Role.ROLE_STAFF,
+            },
+          ],
+        },
+      });
+
+      return {
+        user: {
+          customers: customers.length,
+          repairmans: repairmans.length,
+          staffs: staffs.length,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getDailyStatistic() {
+    try {
+      const currentDate = new Date();
+      const yesterday = new Date(new Date().setDate(currentDate.getDate() - 1));
+      const ordersToday = await this.getStatisticByDate(currentDate);
+      const ordersYesterDay = await this.getStatisticByDate(yesterday);
+      const usersToday = await this.getStatisticUser(currentDate);
+      const usersYesterday = await this.getStatisticUser(yesterday);
+
+      return {
+        today: {
+          orders: ordersToday.ordersByStatus,
+          user: usersToday.user,
+        },
+        yesterday: {
+          orders: ordersYesterDay.ordersByStatus,
+          user: usersYesterday.user,
+        },
+      };
     } catch (error) {
       throw error;
     }
