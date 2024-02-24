@@ -70,9 +70,9 @@ export class UserController {
   @Patch('updateRepairmanStatus')
   @UseGuards(RepairmanGuard)
   @ApiResponse({ type: UserResponseDto })
-  updateRepairmanStatus(@Body() status: number, @Req() req) {
+  updateRepairmanStatus(@Req() req) {
     const { userId } = req.user;
-    return this.userService.updateRepairmanStatus(userId, status);
+    return this.userService.updateRepairmanStatus(userId);
   }
 
   @Patch('changePassword')

@@ -348,20 +348,39 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async updateRepairmanStatus(userId: string, status: number) {
-    if (status !== UserStatus.INACTIVE) {
-      throw new ForbiddenException(
-        'You are not permitted to inactive your account',
-      );
-    }
-
+  async updateRepairmanStatus(userId: string) {
     try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          userId: userId,
+          NOT: {
+            status: UserStatus.INACTIVE,
+          },
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User is not found');
+      }
+      const updateTime = new Date(user.updatedAt).getTime();
+      const configs = await this.prisma.systemConfig.findMany();
+      if (configs && configs[0]) {
+        const interval = configs[0].switchRepairmanStatusPeriod;
+
+        const now = new Date().getTime();
+        if (now - interval * 60 * 1000 < updateTime) {
+          throw new ForbiddenException('You can not change status now');
+        }
+      }
       const updatedUser = await this.prisma.user.update({
         where: {
           userId,
         },
         data: {
-          status,
+          status:
+            user.status === UserStatus.ACTIVE
+              ? UserStatus.BUSY
+              : UserStatus.ACTIVE,
         },
         include: {
           repairmanSkill: {
